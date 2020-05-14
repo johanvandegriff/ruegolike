@@ -33,7 +33,12 @@ I plan to implement these different "levels" of functionality, keeping the game 
 * down stairs: >
 
 ### generation
-* generate multiple levels
+* generate better looking levels
+* up stairs and down stairs should be connected (flood fill)
+* generate 25 levels
+* player starts on upstairs of level 0
+* option: have up stairs on level 0 or not
+* last level has no down stairs
 
 ### display
 * raycasting

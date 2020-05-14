@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"os"
 	"time"
@@ -40,7 +41,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	style := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
+	// style := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
+	// style2 := tcell.StyleDefault.Foreground(tcell.ColorDarkGray).Background(tcell.ColorBlack)
+	style := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorRed)
+	style2 := tcell.StyleDefault.Foreground(tcell.ColorDarkGray).Background(tcell.ColorBlack)
 
 	// invert := tcell.StyleDefault.Foreground(tcell.ColorBlack).Background(tcell.ColorWhite)
 
@@ -48,6 +52,7 @@ func main() {
 	const offsetX, offsetY = 1, 2
 
 	var level [width][height]int32
+	var visible, explored [width][height]bool
 
 	//simple terrain generation
 	for x := 0; x < width; x++ {
@@ -131,10 +136,82 @@ func main() {
 			}
 		}
 
-		//display the map
+		//calculate visible and explored tiles with raycasting
 		for x := 0; x < width; x++ {
 			for y := 0; y < height; y++ {
-				s.SetContent(x+offsetX, y+offsetY, level[x][y], nil, style)
+				if math.Abs(float64(x-playerX)) <= 1 && math.Abs(float64(y-playerY)) <= 1 {
+					visible[x][y] = true
+					explored[x][y] = true
+					continue
+				}
+
+				angle := math.Atan2(float64(y-playerY), float64(x-playerX))
+				emitStr(s, 0, 1, style, fmt.Sprintf("%f", angle))
+
+				x2, y2 := float64(x), float64(y)
+				x2 -= 0.5 * math.Cos(angle)
+				y2 -= 0.5 * math.Sin(angle)
+				for {
+					x2 -= 0.1 * math.Cos(angle)
+					y2 -= 0.1 * math.Sin(angle)
+					if math.Abs(x2-float64(playerX)) < 0.9 && math.Abs(y2-float64(playerY)) < 0.9 {
+						visible[x][y] = true
+						break
+					}
+					bad := 0
+					x2i := int(math.Ceil(x2))
+					y2i := int(math.Ceil(y2))
+					if x2i < 0 || x2i >= width || y2i < 0 || y2i >= height || level[x2i][y2i] != '.' {
+						if x != x2i || y != y2i {
+							bad++
+						}
+					}
+					x2i = int(math.Ceil(x2))
+					y2i = int(math.Floor(y2))
+					if x2i < 0 || x2i >= width || y2i < 0 || y2i >= height || level[x2i][y2i] != '.' {
+						if x != x2i || y != y2i {
+							bad++
+						}
+					}
+					x2i = int(math.Floor(x2))
+					y2i = int(math.Ceil(y2))
+					if x2i < 0 || x2i >= width || y2i < 0 || y2i >= height || level[x2i][y2i] != '.' {
+						if x != x2i || y != y2i {
+							bad++
+						}
+					}
+					x2i = int(math.Floor(x2))
+					y2i = int(math.Floor(y2))
+					if x2i < 0 || x2i >= width || y2i < 0 || y2i >= height || level[x2i][y2i] != '.' {
+						if x != x2i || y != y2i {
+							bad++
+						}
+					}
+					if bad > 1 {
+						visible[x][y] = false
+						break
+					}
+				}
+
+				// visible[x][y] = angle > 1.5 //x >= playerX-1
+				if visible[x][y] {
+					explored[x][y] = true
+				}
+			}
+		}
+
+		//display the level
+		for x := 0; x < width; x++ {
+			for y := 0; y < height; y++ {
+				if explored[x][y] {
+					if visible[x][y] {
+						s.SetContent(x+offsetX, y+offsetY, level[x][y], nil, style)
+					} else {
+						s.SetContent(x+offsetX, y+offsetY, level[x][y], nil, style2)
+					}
+				} else {
+					// s.SetContent(x+offsetX, y+offsetY, ' ', nil, style)
+				}
 			}
 		}
 		// s.SetContent(x, y, '@', nil, tcell.Style.Blink(style, true))
