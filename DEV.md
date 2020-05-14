@@ -152,3 +152,4 @@ I plan to implement these different "levels" of functionality, keeping the game 
 * minigames (like Sokoban)
 * artifacts
 * music
+* play online
