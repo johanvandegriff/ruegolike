@@ -15,7 +15,7 @@ I plan to implement these different "levels" of functionality, keeping the game 
 * player: @, highlighted
 
 ### generation
-* generate 1 5x5 level with each tile randomly empty or wall
+* generate 1 48x16 level with each tile randomly empty or wall
 * start the player on an empty square
 
 ### display
@@ -153,3 +153,8 @@ I plan to implement these different "levels" of functionality, keeping the game 
 * artifacts
 * music
 * play online
+* "pop-up" windows
+* farlook command
+* alternate move methods
+* check if screen is too small
+* run in direction commands

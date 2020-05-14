@@ -44,15 +44,18 @@ func main() {
 
 	// invert := tcell.StyleDefault.Foreground(tcell.ColorBlack).Background(tcell.ColorWhite)
 
-	const width, height = 60, 20
+	const width, height = 48, 16
+	const offsetX, offsetY = 1, 2
 
 	var level [width][height]int32
+
+	//simple terrain generation
 	for x := 0; x < width; x++ {
 		for y := 0; y < height; y++ {
-			if rand.Intn(2) == 1 {
-				level[x][y] = '#'
+			if rand.Intn(100) < 40 {
+				level[x][y] = '#' //wall, 40%
 			} else {
-				level[x][y] = '.'
+				level[x][y] = '.' //empty, 60%
 			}
 		}
 	}
@@ -60,6 +63,7 @@ func main() {
 	// level[5][6] = '#'
 	// level[5][6] = '@'
 
+	//start the player on an empty square
 	var playerX, playerY int
 	//do while
 	for ok := true; ok; ok = level[playerX][playerY] != '.' {
@@ -72,6 +76,7 @@ func main() {
 
 	s.Clear()
 	for {
+		//player movement
 		ev := s.PollEvent()
 		switch ev := ev.(type) {
 		// case *tcell.EventResize:
@@ -81,34 +86,61 @@ func main() {
 				s.Fini()
 				os.Exit(0)
 			}
-			emitStr(s, 0, 0, style, fmt.Sprintf("%s", ev.Name()))
-			emitStr(s, 0, 1, style, fmt.Sprintf("%t", ev.Rune() == '4'))
-			emitStr(s, 0, 2, style, fmt.Sprintf("%c", ev.Rune()))
-			if ev.Rune() == '2' {
-				playerY++
+			emitStr(s, 0, 0, style, fmt.Sprintf("%c", ev.Rune()))
+			emitStr(s, 2, 0, style, fmt.Sprintf("%s                   ", ev.Name()))
+			var deltaX, deltaY int
+			if ev.Name() == "Left" {
+				deltaX, deltaY = -1, 0
+			} else if ev.Name() == "Right" {
+				deltaX, deltaY = 1, 0
+			} else if ev.Name() == "Up" {
+				deltaX, deltaY = 0, -1
+			} else if ev.Name() == "Down" {
+				deltaX, deltaY = 0, 1
+			} else if ev.Rune() == '1' {
+				deltaX, deltaY = -1, 1
+			} else if ev.Rune() == '2' {
+				deltaX, deltaY = 0, 1
+			} else if ev.Rune() == '3' {
+				deltaX, deltaY = 1, 1
+			} else if ev.Rune() == '4' {
+				deltaX, deltaY = -1, 0
+			} else if ev.Rune() == '5' {
+				deltaX, deltaY = 0, 0
+			} else if ev.Rune() == '6' {
+				deltaX, deltaY = 1, 0
+			} else if ev.Rune() == '7' {
+				deltaX, deltaY = -1, -1
+			} else if ev.Rune() == '8' {
+				deltaX, deltaY = 0, -1
+			} else if ev.Rune() == '9' {
+				deltaX, deltaY = 1, -1
 			}
-			if ev.Rune() == '4' {
-				playerX--
-			}
-			if ev.Rune() == '6' {
-				playerX++
-			}
-			if ev.Rune() == '8' {
-				playerY--
+
+			newPlayerX := playerX + deltaX
+			newPlayerY := playerY + deltaY
+
+			if newPlayerX >= 0 && newPlayerX < width &&
+				newPlayerY >= 0 && newPlayerY < height &&
+				level[newPlayerX][newPlayerY] == '.' {
+				playerX = newPlayerX
+				playerY = newPlayerY
+				emitStr(s, 15, 0, style, "    ")
+			} else {
+				emitStr(s, 15, 0, style, "oof!")
 			}
 		}
-		// var x, y int
+
+		//display the map
 		for x := 0; x < width; x++ {
 			for y := 0; y < height; y++ {
-				if x == playerX && y == playerY {
-					// s.SetContent(x, y, '@', nil, tcell.Style.Blink(style, true))
-					s.SetContent(x+5, y+3, '@', nil, style)
-				} else {
-					s.SetContent(x+5, y+3, level[x][y], nil, style)
-				}
+				s.SetContent(x+offsetX, y+offsetY, level[x][y], nil, style)
 			}
 		}
-		s.ShowCursor(playerX+5, playerY+3)
+		// s.SetContent(x, y, '@', nil, tcell.Style.Blink(style, true))
+		s.SetContent(playerX+offsetX, playerY+offsetY, '@', nil, style) //display the player
+		s.ShowCursor(playerX+offsetX, playerY+offsetY)                  //highlight the player
+
 		// s.SetContent(3, 7, tcell.RuneHLine, nil, style)
 		// s.SetContent(3, 8, '#', nil, style)
 		// drawBox(s, 1, 2, 3, 4, style, 'a')
