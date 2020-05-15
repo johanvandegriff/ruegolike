@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"math/rand"
 	"os"
 	"time"
@@ -59,58 +58,195 @@ func Abs8(x int8) int8 {
 	return x
 }
 
-func oneRay(x0, y0, x1, y1 float64, level [width][height]int32) bool {
-	x0 += 0.5
-	x1 += 0.5
-	y0 += 0.5
-	y1 += 0.5
-
-	dx := math.Abs(x1 - x0)
-	dy := math.Abs(y1 - y0)
-
-	x := math.Floor(x0)
-	y := math.Floor(y0)
-
-	n := 1
-	var xInc, yInc int
-	var error float64
-
-	if dx == 0 {
-		xInc = 0
-		error = math.Inf(1)
-	} else if x1 > x0 {
+//https://playtechs.blogspot.com/2007/03/raytracing-on-grid.html
+func traceLineInt(x0, y0, x1, y1 int) [][]int {
+	dx := Abs(x1 - x0)
+	dy := Abs(y1 - y0)
+	x := x0
+	y := y0
+	n := 1 + dx + dy
+	xInc := -1
+	if x1 > x0 {
 		xInc = 1
-		n += int(math.Floor(x1) - x)
-		error = (math.Floor(x0) + 1 - x0) * dy
-	} else {
-		xInc = -1
-		n += int(x - math.Floor(x1))
-		error = (x0 - math.Floor(x0)) * dy
 	}
-
-	if dy == 0 {
-		yInc = 0
-		error -= math.Inf(1)
-	} else if y1 > y0 {
+	yInc := -1
+	if y1 > y0 {
 		yInc = 1
-		n += int(math.Floor(y1) - y)
-		error -= (math.Floor(y0) + 1 - y0) * dx
-	} else {
-		yInc = -1
-		n += int(y - math.Floor(y1))
-		error -= (y0 - math.Floor(y0)) * dx
+	}
+	error := dx - dy
+	dx *= 2
+	dy *= 2
+
+	points := make([][]int, n)
+	i := 0
+	for ; n > 0; n-- {
+		// fmt.Println(x, y, error)
+		points[i] = make([]int, 2)
+		points[i][0] = x
+		points[i][1] = y
+		i++
+
+		if error > 0 {
+			x += xInc
+			error -= dy
+		} else {
+			y += yInc
+			error += dx
+		}
+	}
+	return points
+}
+
+func isXYInRange(x, y int) bool {
+	return x >= 0 && x < width && y >= 0 && y < height
+}
+
+func findNeighbors(x, y int, level [width][height]int32) int {
+	// var neighbors [4]bool
+	var neighbors int = 0
+	if isXYInRange(x, y-1) && level[x][y-1] == '#' {
+		neighbors += 8
+	}
+	if isXYInRange(x-1, y) && level[x-1][y] == '#' {
+		neighbors += 4
+	}
+	if isXYInRange(x, y+1) && level[x][y+1] == '#' {
+		neighbors += 2
+	}
+	if isXYInRange(x+1, y) && level[x+1][y] == '#' {
+		neighbors++
+	}
+	// neighbors[1] = isXYInRange(x-1, y) && level[x-1][y] == '#'
+	// neighbors[2] = isXYInRange(x, y+1) && level[x-1][y] == '#'
+	// neighbors[3] = isXYInRange(x+1, y) && level[x-1][y] == '#'
+	return neighbors
+}
+
+func isSquareObstructing(x0, y0, x1, y1, x, y int, level [width][height]int32) bool {
+	//pre-checks
+	if y1 < y0 {
+		x0, y0, x1, y1 = x1, y1, x0, y0 //make sure that y1 >= y0
+	}
+	if y1 < y || y0 > y ||
+		(x0 > x && x1 > x) ||
+		(x0 < x && x1 < x) {
+		return false
+	}
+	if x0 == x1 {
+		return x0 == x
+	}
+	if y0 == y1 {
+		return y0 == y
+	}
+	m := float64(y1-y0) / float64(x1-x0)
+	b := float64(y0) - m*float64(x0)
+	if m == 1 || m == -1 {
+		return y == int(m*float64(x)+b)
+	}
+	//now, it is guaranteed that x0 != x1, y0 != y1, y1 > y0, m != 1, m != -1
+
+	neighborsToLines := [16][4]uint8{
+		//A B  C  D
+		{1, 1, 1, 1},
+		{2, 3, 1, 1},
+		{1, 2, 3, 1},
+		{2, 0, 3, 1},
+		{1, 1, 2, 3},
+		{2, 3, 2, 3},
+		{1, 2, 0, 3},
+		{2, 0, 0, 3},
+		{1, 1, 1, 2},
+		{0, 3, 1, 2},
+		{1, 2, 3, 2},
+		{0, 0, 3, 2},
+		{1, 1, 2, 0},
+		{0, 3, 2, 0},
+		{1, 2, 0, 0},
+		{0, 0, 0, 0}}
+	lines := neighborsToLines[findNeighbors(x, y, level)]
+	// fmt.Print(lines, " ")
+	xf := float64(x)
+	yf := float64(y)
+	// fmt.Print("(", x, y, ")")
+	if lines[0] == 1 { //A1
+		yi := (m*(-yf+.5+xf) + b) / (1 - m)
+		if yf-.5 <= yi && yi <= yf {
+			return true
+		}
+	} else if lines[0] == 2 { //A2
+		xi := (yf - .5 - b) / m
+		if xf <= xi && xi <= xf+.5 {
+			return true
+		}
+	} else if lines[0] == 3 { //A3
+		yi := m*(xf+.5) + b
+		if yf-.5 <= yi && yi <= yf {
+			return true
+		}
 	}
 
-	for ; n > 0; n-- {
-		if error > 0 {
-			y += float64(yInc)
-			error -= dx
-		} else {
-			x += float64(xInc)
-			error += dy
+	if lines[1] == 1 { //B1
+		yi := (m*(yf+.5+xf) + b) / (1 - m)
+		if yf <= yi && yi <= yf+.5 {
+			return true
 		}
-		ix, iy := int(x), int(y)
-		if ix < 0 || ix >= width || iy < 0 || iy >= height || level[ix][iy] == '#' {
+	} else if lines[1] == 2 { //B2
+		yi := m*(xf+.5) + b
+		if yf <= yi && yi <= yf+0.5 {
+			return true
+		}
+	} else if lines[1] == 3 { //B3
+		xi := (yf + .5 - b) / m
+		if xf <= xi && xi <= xf+.5 {
+			return true
+		}
+	}
+	if lines[2] == 1 { //C1
+		yi := (m*(-yf-.5+xf) + b) / (1 - m)
+		if yf <= yi && yi <= yf+.5 {
+			return true
+		}
+	} else if lines[2] == 2 { //C2
+		xi := (yf + .5 - b) / m
+		if xf-.5 <= xi && xi <= xf {
+			return true
+		}
+	} else if lines[2] == 3 { //C3
+		yi := m*(xf-.5) + b
+		if yf <= yi && yi <= yf+.5 {
+			return true
+		}
+	}
+	if lines[3] == 1 { //D1
+		yi := (m*(yf-.5+xf) + b) / (1 - m)
+		if yf-.5 <= yi && yi <= yf {
+			return true
+		}
+	} else if lines[3] == 2 { //D2
+		yi := m*(xf-.5) + b
+		if yf-.5 <= yi && yi <= yf {
+			return true
+		}
+	} else if lines[3] == 3 { //D3
+		xi := (yf - .5 - b) / m
+		if xf-.5 <= xi && xi <= xf {
+			return true
+		}
+	}
+
+	return false
+
+}
+
+func canPlayerSee(playerX, playerY, x, y int, level [width][height]int32) bool {
+
+	points := traceLineInt(playerX, playerY, x, y)
+
+	for index, point := range points {
+		px := point[0]
+		py := point[1]
+		if index != 0 && index != len(points)-1 && level[px][py] == '#' &&
+			isSquareObstructing(playerX, playerY, x, y, px, py, level) {
 			return false
 		}
 	}
@@ -122,83 +258,7 @@ func raycast(playerX int, playerY int, visible [width][height]bool, explored [wi
 	//calculate visible and explored tiles with raycasting
 	for x := 0; x < width; x++ {
 		for y := 0; y < height; y++ {
-			// var dx float64
-			// if x > playerX {
-			// 	dx = -0.5
-			// } else {
-			// 	dx = 0.5
-			// }
-			// var dy float64
-			// if y > playerY {
-			// 	dy = -0.5
-			// } else {
-			// 	dy = 0.5
-			// }
-			visible[x][y] = Abs(playerX-x) <= 1 && Abs(playerY-y) <= 1 ||
-				oneRay(float64(playerX), float64(playerY), float64(x)-0.5, float64(y)-0.5, level) ||
-				oneRay(float64(playerX), float64(playerY), float64(x)+0.5, float64(y)-0.5, level) ||
-				oneRay(float64(playerX), float64(playerY), float64(x)-0.5, float64(y)+0.5, level) ||
-				oneRay(float64(playerX), float64(playerY), float64(x)+0.5, float64(y)+0.5, level)
-			if visible[x][y] {
-				explored[x][y] = true
-			}
-			continue
-
-			if Abs(playerX-x) <= 1 && Abs(playerY-y) <= 1 {
-				visible[x][y] = true
-				explored[x][y] = true
-				continue
-			}
-
-			angle := math.Atan2(float64(y-playerY), float64(x-playerX))
-			emitStr(s, 0, 1, style, fmt.Sprintf("%f", angle))
-
-			x2, y2 := float64(x), float64(y)
-			// x2 -= 0.5 * math.Cos(angle)
-			// y2 -= 0.5 * math.Sin(angle)
-			for {
-				x2 -= 1 * math.Cos(angle)
-				y2 -= 1 * math.Sin(angle)
-				if math.Abs(x2-float64(playerX)) < 0.6 && math.Abs(y2-float64(playerY)) < 0.6 {
-					visible[x][y] = true
-					break
-				}
-				bad := 0
-				x2i := int(math.Ceil(x2))
-				y2i := int(math.Ceil(y2))
-				if x2i < 0 || x2i >= width || y2i < 0 || y2i >= height || level[x2i][y2i] != '.' {
-					if x != x2i || y != y2i {
-						bad++
-					}
-				}
-				x2i = int(math.Ceil(x2))
-				y2i = int(math.Floor(y2))
-				if x2i < 0 || x2i >= width || y2i < 0 || y2i >= height || level[x2i][y2i] != '.' {
-					if x != x2i || y != y2i {
-						bad++
-					}
-				}
-				x2i = int(math.Floor(x2))
-				y2i = int(math.Ceil(y2))
-				if x2i < 0 || x2i >= width || y2i < 0 || y2i >= height || level[x2i][y2i] != '.' {
-					if x != x2i || y != y2i {
-						bad++
-					}
-				}
-				x2i = int(math.Floor(x2))
-				y2i = int(math.Floor(y2))
-				if x2i < 0 || x2i >= width || y2i < 0 || y2i >= height || level[x2i][y2i] != '.' {
-					if x != x2i || y != y2i {
-						bad++
-					}
-				}
-				if bad > 1 {
-					visible[x][y] = false
-					break
-				}
-			}
-
-			// visible[x][y] = angle > 1.5 //x >= playerX-1
+			visible[x][y] = canPlayerSee(playerX, playerY, x, y, level)
 			if visible[x][y] {
 				explored[x][y] = true
 			}
