@@ -182,7 +182,7 @@ func isXYInRange(x, y int) bool {
 	return x >= 0 && x < width && y >= 0 && y < height
 }
 
-func findNeighbors(x, y int, level [width][height]int32) int {
+func findNeighbors(x, y int, level *[width][height]int32) int {
 	// var neighbors [4]bool
 	var neighbors int = 0
 	if isXYInRange(x, y-1) && level[x][y-1] == '#' {
@@ -203,7 +203,7 @@ func findNeighbors(x, y int, level [width][height]int32) int {
 	return neighbors
 }
 
-func isSquareObstructing(x0, y0, x1, y1, x, y int, level [width][height]int32) bool {
+func isSquareObstructing(x0, y0, x1, y1, x, y int, level *[width][height]int32) bool {
 	// return true //TODO tmp
 	//pre-checks
 	if y1 < y0 {
@@ -337,7 +337,7 @@ func doLinesIntersect(xf, yf, m, b float64, lines [4]uint8) bool {
 
 }
 
-/*func canPlayerSee(playerX, playerY, x, y int, level [width][height]int32) bool {
+/*func canPlayerSee(playerX, playerY, x, y int, level *[width][height]int32) bool {
 	canSee := false
 	for startX := float64(x) - 0.5; startX <= float64(x)+0.5; startX += 0.5 {
 		for startY := float64(y) - 0.5; startY <= float64(y)+0.5; startY += 0.5 {
@@ -366,7 +366,7 @@ func doLinesIntersect(xf, yf, m, b float64, lines [4]uint8) bool {
 	return canSee
 }*/
 
-func canPlayerSee(playerX, playerY, x, y int, level [width][height]int32) bool {
+func canPlayerSee(playerX, playerY, x, y int, level *[width][height]int32) bool {
 	points := traceLineInt(playerX, playerY, x, y)
 
 	for index, point := range points {
@@ -380,8 +380,7 @@ func canPlayerSee(playerX, playerY, x, y int, level [width][height]int32) bool {
 	return true
 }
 
-func raycast(playerX int, playerY int, visible [width][height]bool, explored [width][height]bool, level [width][height]int32, s tcell.Screen, style tcell.Style) ([width][height]bool, [width][height]bool) {
-
+func raycast(playerX int, playerY int, visible *[width][height]bool, explored *[width][height]bool, level *[width][height]int32) {
 	//calculate visible and explored tiles with raycasting
 	for x := 0; x < width; x++ {
 		for y := 0; y < height; y++ {
@@ -395,7 +394,6 @@ func raycast(playerX int, playerY int, visible [width][height]bool, explored [wi
 			}
 		}
 	}
-	return visible, explored
 }
 
 func main() {
@@ -507,7 +505,7 @@ func main() {
 			}
 		}
 
-		visible, explored = raycast(playerX, playerY, visible, explored, level, s, style)
+		raycast(playerX, playerY, &visible, &explored, &level)
 
 		//display the level
 		for x := 0; x < width; x++ {
