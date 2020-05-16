@@ -2,7 +2,8 @@ package main
 
 import "math/rand"
 
-func generate() ([width][height]int32, [width][height]bool, int, int) {
+//Generate - generate all the levels in the game
+func Generate() ([width][height]int32, [width][height]bool, Position) {
 	var level [width][height]int32
 	var explored [width][height]bool
 
@@ -28,5 +29,5 @@ func generate() ([width][height]int32, [width][height]bool, int, int) {
 		playerY = rand.Intn(height)
 	}
 
-	return level, explored, playerX, playerY
+	return level, explored, Position{playerX, playerY, 0}
 }

@@ -7,7 +7,8 @@ import (
 	"github.com/mattn/go-runewidth"
 )
 
-func emitStr(s tcell.Screen, x, y int, style tcell.Style, str string) {
+//EmitStr - display a string on the screen
+func EmitStr(s tcell.Screen, x, y int, style tcell.Style, str string) {
 	for _, c := range str {
 		var comb []rune
 		w := runewidth.RuneWidth(c)
@@ -90,22 +91,22 @@ func setVisible(x, y, octant, originX, originY int, visible *[width][height]bool
 	}
 }
 
-type Slope struct {
+type slope struct {
 	y int
 	x int
 }
 
-func isSlopeGreater(a, b Slope) bool {
+func isSlopeGreater(a, b slope) bool {
 	return a.y*b.x > a.x*b.y
 }
-func isSlopeGreaterOrEqual(a, b Slope) bool {
+func isSlopeGreaterOrEqual(a, b slope) bool {
 	return a.y*b.x >= a.x*b.y
 }
-func isSlopeLess(a, b Slope) bool {
+func isSlopeLess(a, b slope) bool {
 	return a.y*b.x < a.x*b.y
 }
 
-// func isSlopeLessOrEqual(a, b Slope) bool {
+// func isSlopeLessOrEqual(a, b slope) bool {
 // 	return a.y*b.x <= a.x*b.y
 // }
 
@@ -119,11 +120,11 @@ func shadowcast(originX, originY, rangeLimit int, visible *[width][height]bool, 
 	}
 	//loop through each octant
 	for octant := 0; octant < 8; octant++ {
-		shadowcastAux(octant, originX, originY, rangeLimit, 1, Slope{1, 1}, Slope{0, 1}, visible, explored, level)
+		shadowcastAux(octant, originX, originY, rangeLimit, 1, slope{1, 1}, slope{0, 1}, visible, explored, level)
 	}
 }
 
-func shadowcastAux(octant, originX, originY, rangeLimit, x int, top, bottom Slope, visible *[width][height]bool, explored *[width][height]bool, level *[width][height]int32) {
+func shadowcastAux(octant, originX, originY, rangeLimit, x int, top, bottom slope, visible *[width][height]bool, explored *[width][height]bool, level *[width][height]int32) {
 	// throughout this function there are references to various parts of tiles. a tile's coordinates refer to its
 	// center, and the following diagram shows the parts of the tile and the vectors from the origin that pass through
 	// those parts. given a part of a tile with vector u, a vector v passes above it if v > u and below it if v < u
@@ -161,7 +162,7 @@ func shadowcastAux(octant, originX, originY, rangeLimit, x int, top, bottom Slop
 				// otherwise, with a beveled top-left corner, the slope of the vector must be greater than or equal to the
 				// slope of the vector to the top center of the tile (x*2, topY*2+1) in order for it to miss the wall and
 				// pass into the tile above
-				if isSlopeGreaterOrEqual(top, Slope{topY*2 + 1, x * 2}) && !blocksLight(x, topY+1, octant, originX, originY, level) {
+				if isSlopeGreaterOrEqual(top, slope{topY*2 + 1, x * 2}) && !blocksLight(x, topY+1, octant, originX, originY, level) {
 					topY++
 				}
 			} else { // the tile doesn't block light
@@ -191,7 +192,7 @@ func shadowcastAux(octant, originX, originY, rangeLimit, x int, top, bottom Slop
 				if blocksLight(x+1, topY+1, octant, originX, originY, level) { // use bottom-right if the tile above and right is a wall
 					ax++
 				}
-				if isSlopeGreater(top, Slope{topY*2 + 1, ax}) {
+				if isSlopeGreater(top, slope{topY*2 + 1, ax}) {
 					topY++
 				}
 			}
@@ -211,7 +212,7 @@ func shadowcastAux(octant, originX, originY, rangeLimit, x int, top, bottom Slop
 			// is beveled and bottom >= (bottomY*2+1)/(x*2). finally, the top-left corner is beveled if the tiles to the
 			// left and above are clear. we can assume the tile to the left is clear because otherwise the bottom vector
 			// would be greater, so we only have to check above
-			if isSlopeGreaterOrEqual(bottom, Slope{bottomY*2 + 1, x * 2}) && blocksLight(x, bottomY, octant, originX, originY, level) && !blocksLight(x, bottomY+1, octant, originX, originY, level) {
+			if isSlopeGreaterOrEqual(bottom, slope{bottomY*2 + 1, x * 2}) && blocksLight(x, bottomY, octant, originX, originY, level) && !blocksLight(x, bottomY+1, octant, originX, originY, level) {
 				bottomY++
 			}
 		}
@@ -227,7 +228,7 @@ func shadowcastAux(octant, originX, originY, rangeLimit, x int, top, bottom Slop
 				// case where the tile is clear and y == topY or y == bottomY. if y == topY then we have to make sure that
 				// the top vector is above the bottom-right corner of the inner square. if y == bottomY then we have to make
 				// sure that the bottom vector is below the top-left corner of the inner square
-				isVisible := isOpaque || ((y != topY || isSlopeGreater(top, Slope{y*4 - 1, x*4 + 1})) && (y != bottomY || isSlopeLess(bottom, Slope{y*4 + 1, x*4 - 1})))
+				isVisible := isOpaque || ((y != topY || isSlopeGreater(top, slope{y*4 - 1, x*4 + 1})) && (y != bottomY || isSlopeLess(bottom, slope{y*4 + 1, x*4 - 1})))
 				// NOTE: if you want the algorithm to be either fully or mostly symmetrical, replace the line above with the
 				// following line (and uncomment the Slope.LessOrEqual method). the line ensures that a clear tile is visible
 				// only if there's an unobstructed line to its center. if you want it to be fully symmetrical, also remove
@@ -251,15 +252,15 @@ func shadowcastAux(octant, originX, originY, rangeLimit, x int, top, bottom Slop
 							if blocksLight(x, y+1, octant, originX, originY, level) {
 								nx--
 							} // top left if the corner is not beveled
-							if isSlopeGreater(top, Slope{ny, nx}) { // we have to maintain the invariant that top > bottom, so the new sector
+							if isSlopeGreater(top, slope{ny, nx}) { // we have to maintain the invariant that top > bottom, so the new sector
 								// created by adjusting the bottom is only valid if that's the case
 								// if we're at the bottom of the column, then just adjust the current sector rather than recursing
 								// since there's no chance that this sector can be split in two by a later transition back to clear
 								if y == bottomY {
-									bottom = Slope{ny, nx}
+									bottom = slope{ny, nx}
 									break // don't recurse unless necessary
 								} else {
-									shadowcastAux(octant, originX, originY, rangeLimit, x+1, top, Slope{ny, nx}, visible, explored, level)
+									shadowcastAux(octant, originX, originY, rangeLimit, x+1, top, slope{ny, nx}, visible, explored, level)
 								}
 							} else { // the new bottom is greater than or equal to the top, so the new sector is empty and we'll ignore
 								// it. if we're at the bottom of the column, we'd normally adjust the current sector rather than
@@ -280,10 +281,10 @@ func shadowcastAux(octant, originX, originY, rangeLimit, x int, top, bottom Slop
 								nx++
 							} // check the right of the opaque tile (y+1), not this one
 							// we have to maintain the invariant that top > bottom. if not, the sector is empty and we're done
-							if isSlopeGreaterOrEqual(bottom, Slope{ny, nx}) {
+							if isSlopeGreaterOrEqual(bottom, slope{ny, nx}) {
 								return
 							}
-							top = Slope{ny, nx}
+							top = slope{ny, nx}
 						}
 						wasOpaque = 0
 					}
@@ -303,7 +304,10 @@ func shadowcastAux(octant, originX, originY, rangeLimit, x int, top, bottom Slop
 
 }
 
-func display(s tcell.Screen, playerX, playerY int, visible *[width][height]bool, explored *[width][height]bool, level *[width][height]int32) {
+//Display - display the current level on the ascii screen
+func Display(s tcell.Screen, playerPos Position, visible *[width][height]bool, explored *[width][height]bool, level *[width][height]int32) {
+	playerX := playerPos.x
+	playerY := playerPos.y
 
 	style1 := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
 	style2 := tcell.StyleDefault.Foreground(tcell.ColorDarkSlateGray).Background(tcell.ColorBlack)

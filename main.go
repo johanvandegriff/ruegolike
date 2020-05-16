@@ -12,6 +12,13 @@ import (
 const width, height = 48, 16
 const offsetX, offsetY = 1, 2
 
+//Position - the x, y, and z (depth) of a location in the game
+type Position struct {
+	x int
+	y int
+	z int
+}
+
 func main() {
 	rand.Seed(time.Now().UnixNano())
 	tcell.SetEncodingFallback(tcell.EncodingFallbackASCII)
@@ -36,7 +43,7 @@ func main() {
 
 	// invert := tcell.StyleDefault.Foreground(tcell.ColorBlack).Background(tcell.ColorWhite)
 
-	level, explored, playerX, playerY := generate()
+	level, explored, playerPos := Generate()
 
 	var visible [width][height]bool
 	s.Clear()
@@ -51,8 +58,8 @@ func main() {
 				s.Fini()
 				os.Exit(0)
 			}
-			emitStr(s, 0, 0, style1, fmt.Sprintf("%c", ev.Rune()))
-			emitStr(s, 2, 0, style1, fmt.Sprintf("%s                   ", ev.Name()))
+			EmitStr(s, 0, 0, style1, fmt.Sprintf("%c", ev.Rune()))
+			EmitStr(s, 2, 0, style1, fmt.Sprintf("%s                   ", ev.Name()))
 			var deltaX, deltaY int
 			if ev.Name() == "Left" {
 				deltaX, deltaY = -1, 0
@@ -82,20 +89,20 @@ func main() {
 				deltaX, deltaY = 1, -1
 			}
 
-			newPlayerX := playerX + deltaX
-			newPlayerY := playerY + deltaY
+			newPlayerX := playerPos.x + deltaX
+			newPlayerY := playerPos.y + deltaY
 
 			if newPlayerX >= 0 && newPlayerX < width &&
 				newPlayerY >= 0 && newPlayerY < height &&
 				level[newPlayerX][newPlayerY] == '.' {
-				playerX = newPlayerX
-				playerY = newPlayerY
-				emitStr(s, 15, 0, style1, "    ")
+				playerPos.x = newPlayerX
+				playerPos.y = newPlayerY
+				EmitStr(s, 15, 0, style1, "    ")
 			} else {
-				emitStr(s, 15, 0, style1, "oof!")
+				EmitStr(s, 15, 0, style1, "oof!")
 			}
 		}
 
-		display(s, playerX, playerY, &visible, &explored, &level)
+		Display(s, playerPos, &visible, &explored, &level)
 	}
 }
