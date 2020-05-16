@@ -26,7 +26,7 @@ func isXYInRange(x, y int) bool {
 	return x >= 0 && x < width && y >= 0 && y < height
 }
 
-func blocksLight(x, y, octant, originX, originY int, level *[width][height]int32) bool {
+func blocksLight(x, y, octant, originX, originY int, level *[height][width]int32) bool {
 	nx, ny := originX, originY
 	switch octant {
 	case 0:
@@ -54,10 +54,10 @@ func blocksLight(x, y, octant, originX, originY int, level *[width][height]int32
 		nx += x
 		ny += y
 	}
-	return !isXYInRange(nx, ny) || level[nx][ny] != '.'
+	return !isXYInRange(nx, ny) || level[ny][nx] == '#'
 }
 
-func setVisible(x, y, octant, originX, originY int, visible *[width][height]bool, explored *[width][height]bool) {
+func setVisible(x, y, octant, originX, originY int, visible *[height][width]bool, explored *[height][width]bool) {
 	nx, ny := originX, originY
 	switch octant {
 	case 0:
@@ -86,8 +86,8 @@ func setVisible(x, y, octant, originX, originY int, visible *[width][height]bool
 		ny += y
 	}
 	if isXYInRange(nx, ny) {
-		visible[nx][ny] = true
-		explored[nx][ny] = true
+		visible[ny][nx] = true
+		explored[ny][nx] = true
 	}
 }
 
@@ -112,10 +112,10 @@ func isSlopeLess(a, b slope) bool {
 
 //calculate visible and explored tiles with shadowcasting
 //see http://www.adammil.net/blog/v125_Roguelike_Vision_Algorithms.html#mine
-func shadowcast(originX, originY, rangeLimit int, visible *[width][height]bool, explored *[width][height]bool, level *[width][height]int32) {
+func shadowcast(originX, originY, rangeLimit int, visible *[height][width]bool, explored *[height][width]bool, level *[height][width]int32) {
 	for x := 0; x < width; x++ {
 		for y := 0; y < height; y++ {
-			visible[x][y] = false
+			visible[y][x] = false
 		}
 	}
 	//loop through each octant
@@ -124,7 +124,7 @@ func shadowcast(originX, originY, rangeLimit int, visible *[width][height]bool, 
 	}
 }
 
-func shadowcastAux(octant, originX, originY, rangeLimit, x int, top, bottom slope, visible *[width][height]bool, explored *[width][height]bool, level *[width][height]int32) {
+func shadowcastAux(octant, originX, originY, rangeLimit, x int, top, bottom slope, visible *[height][width]bool, explored *[height][width]bool, level *[height][width]int32) {
 	// throughout this function there are references to various parts of tiles. a tile's coordinates refer to its
 	// center, and the following diagram shows the parts of the tile and the vectors from the origin that pass through
 	// those parts. given a part of a tile with vector u, a vector v passes above it if v > u and below it if v < u
@@ -305,7 +305,7 @@ func shadowcastAux(octant, originX, originY, rangeLimit, x int, top, bottom slop
 }
 
 //Display - display the current level on the ascii screen
-func Display(s tcell.Screen, playerPos Position, visible *[width][height]bool, explored *[width][height]bool, level *[width][height]int32) {
+func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, explored1 *[height][width]bool, level *[height][width]int32) {
 	playerX := playerPos.x
 	playerY := playerPos.y
 
@@ -313,19 +313,20 @@ func Display(s tcell.Screen, playerPos Position, visible *[width][height]bool, e
 	style2 := tcell.StyleDefault.Foreground(tcell.ColorDarkSlateGray).Background(tcell.ColorBlack)
 
 	rangeLimit := 7
-	shadowcast(playerX, playerY, rangeLimit, visible, explored, level)
+	shadowcast(playerX, playerY, rangeLimit, visible, explored1, level)
 
 	//display the level
 	for x := 0; x < width; x++ {
 		for y := 0; y < height; y++ {
-			if explored[x][y] {
-				if visible[x][y] {
-					s.SetContent(x+offsetX, y+offsetY, level[x][y], nil, style1)
+			if explored1[y][x] {
+				if visible[y][x] {
+					s.SetContent(x+offsetX, y+offsetY, level[y][x], nil, style1)
 				} else {
-					s.SetContent(x+offsetX, y+offsetY, level[x][y], nil, style2)
+					s.SetContent(x+offsetX, y+offsetY, level[y][x], nil, style2)
 				}
 			} else {
 				s.SetContent(x+offsetX, y+offsetY, ' ', nil, style2)
+				// s.SetContent(x+offsetX, y+offsetY, level[y][x], nil, style2)
 			}
 		}
 	}

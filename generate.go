@@ -3,18 +3,31 @@ package main
 import "math/rand"
 
 //Generate - generate all the levels in the game
-func Generate() ([width][height]int32, [width][height]bool, Position) {
-	var level [width][height]int32
-	var explored [width][height]bool
+func Generate() ([depth][height][width]int32, [depth][height][width]bool, Position) {
+	var levels [depth][height][width]int32
+	var explored [depth][height][width]bool
 
 	//simple terrain generation
-	for x := 0; x < width; x++ {
+	var stairX, stairY int
+	for z := 0; z < depth; z++ {
 		for y := 0; y < height; y++ {
-			if rand.Intn(100) < 40 {
-				level[x][y] = '#' //wall, 40%
-			} else {
-				level[x][y] = '.' //empty, 60%
+			for x := 0; x < width; x++ {
+				if rand.Intn(100) < 40 {
+					levels[z][y][x] = '#' //wall, 40%
+				} else {
+					levels[z][y][x] = '.' //empty, 60%
+				}
 			}
+		}
+		if z > 0 {
+			levels[z][stairY][stairX] = '<'
+		}
+		if z < depth-1 {
+			for ok := true; ok; ok = levels[0][stairY][stairX] != '.' {
+				stairX = rand.Intn(width)
+				stairY = rand.Intn(height)
+			}
+			levels[z][stairY][stairX] = '>'
 		}
 	}
 	// level[5][4] = '£'
@@ -24,10 +37,10 @@ func Generate() ([width][height]int32, [width][height]bool, Position) {
 	//start the player on an empty square
 	var playerX, playerY int
 	//do while
-	for ok := true; ok; ok = level[playerX][playerY] != '.' {
+	for ok := true; ok; ok = levels[0][playerY][playerX] != '.' {
 		playerX = rand.Intn(width)
 		playerY = rand.Intn(height)
 	}
 
-	return level, explored, Position{playerX, playerY, 0}
+	return levels, explored, Position{playerX, playerY, 0}
 }

@@ -36,9 +36,10 @@ Update: looks like RogueBasin has a similar [article](http://roguebasin.roguelik
 ### generation
 * generate better looking levels
 * up stairs and down stairs should be connected (flood fill)
-* generate 25 levels
+* can have multiple up/down stairs?
+* generate 32 levels
 * player starts on upstairs of level 0
-* option: have up stairs on level 0 or not
+* first level has no up stairs
 * last level has no down stairs
 
 ### display

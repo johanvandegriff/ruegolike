@@ -9,7 +9,7 @@ import (
 	"github.com/gdamore/tcell"
 )
 
-const width, height = 48, 16
+const width, height, depth = 48, 16, 32
 const offsetX, offsetY = 1, 2
 
 //Position - the x, y, and z (depth) of a location in the game
@@ -43,9 +43,9 @@ func main() {
 
 	// invert := tcell.StyleDefault.Foreground(tcell.ColorBlack).Background(tcell.ColorWhite)
 
-	level, explored, playerPos := Generate()
+	levels, explored, playerPos := Generate()
 
-	var visible [width][height]bool
+	var visible [height][width]bool
 	s.Clear()
 	for {
 		//player movement
@@ -88,21 +88,26 @@ func main() {
 			} else if ev.Rune() == '9' {
 				deltaX, deltaY = 1, -1
 			}
+			if deltaX != 0 || deltaY != 0 {
+				newPlayerX := playerPos.x + deltaX
+				newPlayerY := playerPos.y + deltaY
 
-			newPlayerX := playerPos.x + deltaX
-			newPlayerY := playerPos.y + deltaY
-
-			if newPlayerX >= 0 && newPlayerX < width &&
-				newPlayerY >= 0 && newPlayerY < height &&
-				level[newPlayerX][newPlayerY] == '.' {
-				playerPos.x = newPlayerX
-				playerPos.y = newPlayerY
-				EmitStr(s, 15, 0, style1, "    ")
-			} else {
-				EmitStr(s, 15, 0, style1, "oof!")
+				if newPlayerX >= 0 && newPlayerX < width &&
+					newPlayerY >= 0 && newPlayerY < height &&
+					levels[playerPos.z][newPlayerY][newPlayerX] != '#' {
+					playerPos.x = newPlayerX
+					playerPos.y = newPlayerY
+					EmitStr(s, 15, 0, style1, "    ")
+				} else {
+					EmitStr(s, 15, 0, style1, "oof!")
+				}
+			} else if ev.Rune() == '>' && levels[playerPos.z][playerPos.y][playerPos.x] == '>' {
+				playerPos.z++
+			} else if ev.Rune() == '<' && levels[playerPos.z][playerPos.y][playerPos.x] == '<' {
+				playerPos.z--
 			}
 		}
 
-		Display(s, playerPos, &visible, &explored, &level)
+		Display(s, playerPos, &visible, &explored[playerPos.z], &levels[playerPos.z])
 	}
 }
