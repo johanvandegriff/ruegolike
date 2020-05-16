@@ -36,31 +36,9 @@ func main() {
 
 	// invert := tcell.StyleDefault.Foreground(tcell.ColorBlack).Background(tcell.ColorWhite)
 
-	var level [width][height]int32
-	var visible, explored [width][height]bool
+	level, explored, playerX, playerY := generate()
 
-	//simple terrain generation
-	for x := 0; x < width; x++ {
-		for y := 0; y < height; y++ {
-			if rand.Intn(100) < 40 {
-				level[x][y] = '#' //wall, 40%
-			} else {
-				level[x][y] = '.' //empty, 60%
-			}
-		}
-	}
-	// level[5][4] = '£'
-	// level[5][6] = '#'
-	// level[5][6] = '@'
-
-	//start the player on an empty square
-	var playerX, playerY int
-	//do while
-	for ok := true; ok; ok = level[playerX][playerY] != '.' {
-		playerX = rand.Intn(width)
-		playerY = rand.Intn(height)
-	}
-
+	var visible [width][height]bool
 	s.Clear()
 	for {
 		//player movement
