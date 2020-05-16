@@ -3,6 +3,7 @@ This is my "spec sheet" for designing a roguelike. I'm trying to boil down as mu
 
 # plans
 I plan to implement these different "levels" of functionality, keeping the game as generic as possible for as long as possible, so that I can eventually split the codebase off into a library and a game that uses that library. That way, more games can easily be developed based on that library.
+Update: looks like RogueBasin has a similar [article](http://roguebasin.roguelikedevelopment.org/index.php?title=How_to_Write_a_Roguelike_in_15_Steps)
 
 # levels
 
@@ -51,7 +52,17 @@ I plan to implement these different "levels" of functionality, keeping the game 
 
 
 
-## level 2: fighting
+## level 2: message system
+### player verbs
+* view message log: m
+### messages
+* running into a wall: "oof!"
+* going up stairs: "you walk up the stairs"
+* going down stairs: "you walk down the stairs"
+
+
+
+## level 3: fighting
 
 ### creatures
 * enemy: e
@@ -70,9 +81,16 @@ I plan to implement these different "levels" of functionality, keeping the game 
 * HP
 * death
 
+### messages
+* "the enemy hits you"
+* "you hit the enemy"
+* "the enemy kicks you"
+* "you kick the enemy"
+* "the enemy dies"
+* "you die!"
 
 
-##level 3: items
+##level 4: items
 
 ### items
 * weapon: )
@@ -92,14 +110,6 @@ I plan to implement these different "levels" of functionality, keeping the game 
 * damage output
 * AC
 
-
-
-## level 4: message system
-### tiles
-### creatures
-### items
-### player verbs
-### health
 
 
 
