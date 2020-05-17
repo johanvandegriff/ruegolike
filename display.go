@@ -203,9 +203,6 @@ func shadowcastAux(octant, originX, originY, rangeLimit, x int, top, bottom slop
 			// bottom.Y starts at zero and remains zero as long as it doesn't hit anything, so it's common
 			bottomY = 0
 		} else { // bottom > 0
-			// if bottom.x == 0 { //TODO
-			// 	bottom.x = 1
-			// }
 			bottomY = ((x*2-1)*bottom.y + bottom.x) / (bottom.x * 2) // the tile that the bottom vector enters from the left
 			// code below assumes that if a tile is a wall then it's visible, so if the tile contains a wall we have to
 			// ensure that the bottom vector actually hits the wall shape. it misses the wall shape if the top-left corner
@@ -312,7 +309,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 	style1 := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
 	style2 := tcell.StyleDefault.Foreground(tcell.ColorDarkSlateGray).Background(tcell.ColorBlack)
 
-	rangeLimit := 7
+	rangeLimit := -1
 	shadowcast(playerX, playerY, rangeLimit, visible, explored1, level)
 
 	//display the level
@@ -325,8 +322,11 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 					s.SetContent(x+offsetX, y+offsetY, level[y][x], nil, style2)
 				}
 			} else {
-				s.SetContent(x+offsetX, y+offsetY, ' ', nil, style2)
-				// s.SetContent(x+offsetX, y+offsetY, level[y][x], nil, style2)
+				if debug {
+					s.SetContent(x+offsetX, y+offsetY, level[y][x], nil, style2)
+				} else {
+					s.SetContent(x+offsetX, y+offsetY, ' ', nil, style2)
+				}
 			}
 		}
 	}

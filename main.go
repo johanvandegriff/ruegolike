@@ -11,6 +11,7 @@ import (
 
 const width, height, depth = 48, 16, 32
 const offsetX, offsetY = 1, 2
+const debug = false
 
 //Position - the x, y, and z (depth) of a location in the game
 type Position struct {
@@ -21,6 +22,10 @@ type Position struct {
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
+
+	levels, explored, playerPos := Generate()
+	// time.Sleep(1 * time.Second)
+
 	tcell.SetEncodingFallback(tcell.EncodingFallbackASCII)
 	s, e := tcell.NewScreen()
 	// fmt.Println(s, e)
@@ -42,8 +47,6 @@ func main() {
 	// style3 := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorDarkGray)
 
 	// invert := tcell.StyleDefault.Foreground(tcell.ColorBlack).Background(tcell.ColorWhite)
-
-	levels, explored, playerPos := Generate()
 
 	var visible [height][width]bool
 	s.Clear()
@@ -101,9 +104,9 @@ func main() {
 				} else {
 					EmitStr(s, 15, 0, style1, "oof!")
 				}
-			} else if ev.Rune() == '>' && levels[playerPos.z][playerPos.y][playerPos.x] == '>' {
+			} else if ev.Rune() == '>' && (debug || levels[playerPos.z][playerPos.y][playerPos.x] == '>') {
 				playerPos.z++
-			} else if ev.Rune() == '<' && levels[playerPos.z][playerPos.y][playerPos.x] == '<' {
+			} else if ev.Rune() == '<' && (debug || levels[playerPos.z][playerPos.y][playerPos.x] == '<') {
 				playerPos.z--
 			}
 		}
