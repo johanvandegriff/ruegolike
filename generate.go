@@ -138,13 +138,15 @@ func Generate() ([depth][height][width]int32, [depth][height][width]bool, Positi
 				playerX, playerY = stairX, stairY
 			}
 			mask := floodFill(stairX, stairY, &levels[z-1])
+			oldStairX, oldStairY := stairX, stairY
 			for i := 0; ; i++ {
 				if i > 9999 {
 					genCaveLevel(&levels[z])
 				}
 				stairX = rand.Intn(width)
 				stairY = rand.Intn(height)
-				if mask[stairY][stairX] && levels[z][stairY][stairX] == '.' {
+				if mask[stairY][stairX] && levels[z][stairY][stairX] == '.' &&
+					(stairX-oldStairX)*(stairX-oldStairX)+(stairY-oldStairY)*(stairY-oldStairY) >= 8*8 {
 					break
 				}
 			}
