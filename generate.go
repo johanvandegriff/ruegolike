@@ -121,13 +121,17 @@ func Generate() ([depth][height][width]int32, [depth][height][width]bool, Positi
 	//simple terrain generation
 	var stairX, stairY, playerX, playerY int
 	for z := 0; z < depth; z++ {
+	genlevel:
 		genCaveLevel(&levels[z])
 		if z > 0 {
 			if z == 1 {
 				for i := 0; ; i++ {
 					if i > 9999 {
-						genCaveLevel(&levels[z-1])
-						genCaveLevel(&levels[z])
+						z--
+						goto genlevel
+						// genCaveLevel(&levels[z-1])
+						// genCaveLevel(&levels[z])
+						// i = 0
 					}
 					stairX = rand.Intn(width)
 					stairY = rand.Intn(height)
@@ -141,7 +145,12 @@ func Generate() ([depth][height][width]int32, [depth][height][width]bool, Positi
 			oldStairX, oldStairY := stairX, stairY
 			for i := 0; ; i++ {
 				if i > 9999 {
-					genCaveLevel(&levels[z])
+					z--
+					goto genlevel
+					// genCaveLevel(&levels[z-1])
+					// genCaveLevel(&levels[z])
+					// mask = floodFill(stairX, stairY, &levels[z-1])
+					// i = 0
 				}
 				stairX = rand.Intn(width)
 				stairY = rand.Intn(height)
