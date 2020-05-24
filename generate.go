@@ -49,6 +49,9 @@ func doRoomsOverlap(rm1, rm2 room) bool {
 	return true
 }
 
+//TODO maybe reject levels with too much empty space
+//TODO different distributions of number of rooms to size of rooms
+//	either lots of small rooms, a few big rooms, or in between
 func genRoomLevel(level *[height][width]int32) {
 	for yi := 0; yi < height; yi++ {
 		for xi := 0; xi < width; xi++ {
@@ -111,21 +114,178 @@ func genRoomLevel(level *[height][width]int32) {
 		//bottom right corner
 		addBoxArt(level, y+h-1, x+w-1, '┘')
 
+		//top and bottom walls
 		for i := 1; i < w-1; i++ {
 			addBoxArt(level, y, x+i, '─')
 			addBoxArt(level, y+h-1, x+i, '─')
 		}
+
+		//left and right walls
 		for j := 1; j < h-1; j++ {
 			addBoxArt(level, y+j, x, '│')
 			addBoxArt(level, y+j, x+w-1, '│')
 		}
 
+		//floor
 		for i := 1; i < w-1; i++ {
 			for j := 1; j < h-1; j++ {
 				addBoxArt(level, y+j, x+i, '.')
 			}
 		}
 	}
+
+	start := rand.Intn(numRooms)
+	end := rand.Intn(numRooms - 1)
+	if start == end {
+		end++
+	}
+	extra := 2 //TODO make sure extra corridors are not redundant, and use unused space on the outside of the map?
+	//	also maybe add some non-winding corridors
+	//	could use "concentric" rectangles starting from the outside and find intersection with rooms
+	for {
+		// for q := 0; q < 4 && !allConnected; q++ {
+		tryDrawCorridor(start, end, rooms, level)
+
+		//find the unconnected rooms
+		connectedTo := make([]int, numRooms)
+		for i := 0; i < numRooms; i++ {
+			connectedTo[i] = i //each room starts off connected to itself
+		}
+		//now find the lowest room number that each room is connected to
+		for i := 0; i < numRooms; i++ {
+			if connectedTo[i] == i {
+				//use flood fill to find what rooms each room is connected to
+				mask := floodFill(rooms[i].x+1, rooms[i].y+1, level)
+				for j := i + 1; j < numRooms; j++ {
+					x, y := rooms[j].x+1, rooms[j].y+1
+					if mask[y][x] {
+						connectedTo[j] = i
+					}
+				}
+			}
+		}
+
+		//TODO allow 1 unconnected room?
+		numConnected := 0
+		for i := 0; i < numRooms; i++ {
+			if connectedTo[i] != 0 {
+				numConnected++
+				// break
+			}
+		}
+
+		if numConnected == 0 {
+			if extra == 0 {
+				break
+			}
+			extra--
+			start = rand.Intn(numRooms)
+			end = rand.Intn(numRooms)
+		} else {
+
+			//pick what 2 rooms to connect next
+			start = rand.Intn(numRooms)
+			end = rand.Intn(numRooms)
+			for start == end || connectedTo[start] == connectedTo[end] {
+				start = rand.Intn(numRooms)
+				end = rand.Intn(numRooms)
+			}
+		}
+	}
+}
+
+type point struct {
+	x, y int
+}
+
+//TODO replace corridors with ':'
+func tryDrawCorridor(i1, i2 int, rooms []room, level *[height][width]int32) bool {
+	if i1 == i2 {
+		return false
+	}
+	r1, r2 := rooms[i1], rooms[i2]
+	//pick x,y locations inside the rooms not including the walls
+	startX := randRangeInclusive(r1.x+1, r1.x+r1.w-2)
+	startY := randRangeInclusive(r1.y+1, r1.y+r1.h-2)
+	endX := randRangeInclusive(r2.x+1, r2.x+r2.w-2)
+	endY := randRangeInclusive(r2.y+1, r2.y+r2.h-2)
+
+	dx, dy := 0, 0
+	x, y := startX, startY
+	goX := true //slightly favor going horizontal first
+	nextSame := false
+
+	points := make([]point, 0)
+
+	for {
+		if x < endX {
+			dx = 1
+		} else if x > endX {
+			dx = -1
+		} else {
+			dx = 0
+		}
+
+		if y < endY {
+			dy = 1
+		} else if y > endY {
+			dy = -1
+		} else {
+			dy = 0
+		}
+
+		if dx == 0 && dy == 0 {
+			break
+		}
+		if dx == 0 {
+			goX = false
+		} else if dy == 0 {
+			goX = true
+		} else {
+			//change direction 25% of the time
+			if !nextSame && rand.Intn(100) < 25 {
+				goX = !goX
+			}
+		}
+
+		if goX {
+			x += dx
+		} else {
+			y += dy
+		}
+
+		//stop when it hits another room other than intended. if not close enough, abort. if close enough, keep it
+		// if level[y][x] == '.' {
+		if level[y][x] == '.' && nextSame { //TODO will this change once corridors are ':'
+			if (x-endX)*(x-endX)+(y-endY)*(y-endY) <= 8*8 {
+				break
+			} else {
+				return false
+			}
+		}
+
+		//stop when it hits a corner of a room
+		if level[y][x] == '┌' || level[y][x] == '┐' || level[y][x] == '┘' || level[y][x] == '└' || level[y][x] == '├' || level[y][x] == '┬' || level[y][x] == '┴' || level[y][x] == '┤' || level[y][x] == '┼' {
+			return false
+		}
+
+		nextSame = false
+		if level[y][x] == '─' || level[y][x] == '│' {
+			nextSame = true
+		}
+
+		points = append(points, point{x, y})
+		// level[y][x] = '.'
+	}
+
+	for _, pt := range points {
+		level[pt.y][pt.x] = '.'
+	}
+
+	//TODO: also stop when it hits anything of interest? (anything but '|','#','.' when moving horizontal or '-','#','.' when moving vertically)
+	//TODO: option for "diagonal" tunnel (alternating x/y)
+	//TODO: no 2 doors next to each other
+	return true
 }
 
 // https://unicode-search.net/unicode-namesearch.pl?term=BOX%20DRAWINGS
@@ -283,106 +443,106 @@ func addBoxArt(level *[height][width]int32, y, x int, new int32) {
 		case '┼':
 			combined = '┼'
 		}
-	// case '├':
-	// 	switch new {
-	// 	case '┌':
-	// 		combined = ''
-	// 	case '└':
-	// 		combined = ''
-	// 	case '┐':
-	// 		combined = ''
-	// 	case '┘':
-	// 		combined = ''
-	// 	case '─':
-	// 		combined = ''
-	// 	case '│':
-	// 		combined = ''
-	// 	case '├':
-	// 		combined = ''
-	// 	case '┤':
-	// 		combined = ''
-	// 	case '┬':
-	// 		combined = ''
-	// 	case '┴':
-	// 		combined = ''
-	// 	case '┼':
-	// 		combined = ''
-	// 	}
-	// case '┤':
-	// 	switch new {
-	// 	case '┌':
-	// 		combined = ''
-	// 	case '└':
-	// 		combined = ''
-	// 	case '┐':
-	// 		combined = ''
-	// 	case '┘':
-	// 		combined = ''
-	// 	case '─':
-	// 		combined = ''
-	// 	case '│':
-	// 		combined = ''
-	// 	case '├':
-	// 		combined = ''
-	// 	case '┤':
-	// 		combined = ''
-	// 	case '┬':
-	// 		combined = ''
-	// 	case '┴':
-	// 		combined = ''
-	// 	case '┼':
-	// 		combined = ''
-	// 	}
-	// case '┬':
-	// 	switch new {
-	// 	case '┌':
-	// 		combined = ''
-	// 	case '└':
-	// 		combined = ''
-	// 	case '┐':
-	// 		combined = ''
-	// 	case '┘':
-	// 		combined = ''
-	// 	case '─':
-	// 		combined = ''
-	// 	case '│':
-	// 		combined = ''
-	// 	case '├':
-	// 		combined = ''
-	// 	case '┤':
-	// 		combined = ''
-	// 	case '┬':
-	// 		combined = ''
-	// 	case '┴':
-	// 		combined = ''
-	// 	case '┼':
-	// 		combined = ''
-	// 	}
-	// case '┴':
-	// 	switch new {
-	// 	case '┌':
-	// 		combined = ''
-	// 	case '└':
-	// 		combined = ''
-	// 	case '┐':
-	// 		combined = ''
-	// 	case '┘':
-	// 		combined = ''
-	// 	case '─':
-	// 		combined = ''
-	// 	case '│':
-	// 		combined = ''
-	// 	case '├':
-	// 		combined = ''
-	// 	case '┤':
-	// 		combined = ''
-	// 	case '┬':
-	// 		combined = ''
-	// 	case '┴':
-	// 		combined = ''
-	// 	case '┼':
-	// 		combined = ''
-	// 	}
+	case '├':
+		switch new {
+		case '┌':
+			combined = '├'
+		case '└':
+			combined = '├'
+		case '┐':
+			combined = '┼'
+		case '┘':
+			combined = '┼'
+		case '─':
+			combined = '┼'
+		case '│':
+			combined = '├'
+		case '├':
+			combined = '├'
+		case '┤':
+			combined = '┼'
+		case '┬':
+			combined = '┼'
+		case '┴':
+			combined = '┼'
+		case '┼':
+			combined = '┼'
+		}
+	case '┤':
+		switch new {
+		case '┌':
+			combined = '┼'
+		case '└':
+			combined = '┼'
+		case '┐':
+			combined = '┤'
+		case '┘':
+			combined = '┤'
+		case '─':
+			combined = '┼'
+		case '│':
+			combined = '┤'
+		case '├':
+			combined = '┼'
+		case '┤':
+			combined = '┤'
+		case '┬':
+			combined = '┼'
+		case '┴':
+			combined = '┼'
+		case '┼':
+			combined = '┼'
+		}
+	case '┬':
+		switch new {
+		case '┌':
+			combined = '┬'
+		case '└':
+			combined = '┼'
+		case '┐':
+			combined = '┬'
+		case '┘':
+			combined = '┼'
+		case '─':
+			combined = '┬'
+		case '│':
+			combined = '┼'
+		case '├':
+			combined = '┼'
+		case '┤':
+			combined = '┼'
+		case '┬':
+			combined = '┬'
+		case '┴':
+			combined = '┼'
+		case '┼':
+			combined = '┼'
+		}
+	case '┴':
+		switch new {
+		case '┌':
+			combined = '┼'
+		case '└':
+			combined = '┴'
+		case '┐':
+			combined = '┼'
+		case '┘':
+			combined = '┴'
+		case '─':
+			combined = '┴'
+		case '│':
+			combined = '┼'
+		case '├':
+			combined = '┼'
+		case '┤':
+			combined = '┼'
+		case '┬':
+			combined = '┴'
+		case '┴':
+			combined = '┼'
+		case '┼':
+			combined = '┼'
+		}
 	case '┼':
 		combined = '┼'
 	}
@@ -491,7 +651,8 @@ func floodFillAux(x, y int, level *[height][width]int32, mask *[height][width]bo
 	}
 }
 
-const minStairDist = 0 //8
+const minStairDist = 8 //TODO experiment with this to avoid infinite loops
+
 func tryToAddStairs(z int, stairX, stairY, playerX, playerY int, levels *[depth][height][width]int32) (bool, int, int, int, int) {
 	// var stairX, stairY, playerX, playerY int
 	if z > 0 {
