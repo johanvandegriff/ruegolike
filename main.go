@@ -92,7 +92,7 @@ func main() {
 
 				if newPlayerX >= 0 && newPlayerX < width &&
 					newPlayerY >= 0 && newPlayerY < height &&
-					!dungeon.GetTile(Position{newPlayerX, newPlayerY, playerPos.z}).isSolid {
+					!dungeon.GetTile(Position{newPlayerX, newPlayerY, playerPos.z}).IsSolid() {
 					playerPos.x = newPlayerX
 					playerPos.y = newPlayerY
 					EmitStr(s, 15, 0, style1, "    ")

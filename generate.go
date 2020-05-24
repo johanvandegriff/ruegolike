@@ -252,7 +252,7 @@ func tryDrawCorridor(i1, i2 int, rooms []room, level *Level) bool {
 
 		//stop when it hits another room other than intended. if not close enough, abort. if close enough, keep it
 		// if level[y][x] == '.' {
-		if !level.GetTile(Point{x, y}).isSolid && nextSame { //TODO will this change once corridors are ':'
+		if !level.GetTile(Point{x, y}).IsSolid() && nextSame { //TODO will this change once corridors are ':'
 			if (x-endX)*(x-endX)+(y-endY)*(y-endY) <= 8*8 {
 				break
 			} else {
@@ -261,7 +261,7 @@ func tryDrawCorridor(i1, i2 int, rooms []room, level *Level) bool {
 		}
 
 		//stop when it hits a corner of a room
-		if level.GetTile(Point{x, y}).isCorner {
+		if level.GetTile(Point{x, y}).IsCorner() {
 			return false
 		}
 
@@ -290,6 +290,8 @@ func tryDrawCorridor(i1, i2 int, rooms []room, level *Level) bool {
 func addBoxArt(level *Level, y, x int, new int32) {
 	old := level.GetChar(Point{x, y})
 	combined := new
+
+	//TODO replace this madness with contextual rendering
 	switch old {
 	case '┌':
 		switch new {
@@ -639,7 +641,7 @@ func floodFill(x, y int, level *Level) [height][width]bool {
 }
 
 func floodFillAux(x, y int, level *Level, mask *[height][width]bool) {
-	if isXYInRange(x, y) && !level.GetTile(Point{x, y}).isSolid && mask[y][x] == false {
+	if isXYInRange(x, y) && !level.GetTile(Point{x, y}).IsSolid() && mask[y][x] == false {
 		mask[y][x] = true
 		// level[y][x] = '~'
 		for dy := -1; dy <= 1; dy++ {

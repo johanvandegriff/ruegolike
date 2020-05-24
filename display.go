@@ -54,7 +54,7 @@ func blocksLight(x, y, octant, originX, originY int, level *Level) bool {
 		nx += x
 		ny += y
 	}
-	return !isXYInRange(nx, ny) || level.GetTile(Point{nx, ny}).blocksLight
+	return !isXYInRange(nx, ny) || level.GetTile(Point{nx, ny}).BlocksLight()
 }
 
 //TODO move visible and explored to player/creature

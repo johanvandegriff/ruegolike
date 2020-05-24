@@ -25,11 +25,11 @@ type Level struct {
 
 //Tile - one square on a level
 type Tile struct {
-	char        int32 //the character that is displayed
-	isSolid     bool  //are you prevented from walking through it?
-	blocksLight bool  //are you prevented from seeing through it?
-	isRoom      bool  //does it define the walls of a room?
-	isCorner    bool  //is it the corner of a room?
+	char int32 //the character that is displayed
+	// isSolid     bool  //are you prevented from walking through it?
+	// blocksLight bool  //are you prevented from seeing through it?
+	// isRoom      bool  //does it define the walls of a room?
+	// isCorner    bool  //is it the corner of a room?
 }
 
 //GetTile - retrieve a tile from the dungeon using an x, y, z position
@@ -57,27 +57,33 @@ func (l *Level) GetChar(p Point) int32 {
 	return l.tiles[p.y][p.x].char
 }
 
-//NewTile - create a new tile from a char
-func NewTile(c int32) *Tile {
-	isSolid, blocksLight, isRoom, isCorner := false, false, false, false
-	if c == '#' {
-		isSolid, blocksLight = true, true
-	}
-	if c == '├' || c == '┤' || c == '┬' || c == '┴' || c == '┼' || c == '┌' || c == '└' || c == '┐' || c == '┘' || c == '─' || c == '│' {
-		isSolid, blocksLight, isRoom = true, true, true
-	}
-	if c == '├' || c == '┤' || c == '┬' || c == '┴' || c == '┼' || c == '┌' || c == '└' || c == '┐' || c == '┘' {
-		isCorner = true
-	}
-	return &Tile{c, isSolid, blocksLight, isRoom, isCorner}
+//IsSolid - returns whether or not a creature can move through the tile
+func (t *Tile) IsSolid() bool {
+	c := t.char
+	return c == '#' || t.IsRoom()
+}
+
+//IsCorner - is the tile the corner of a room border?
+func (t *Tile) IsCorner() bool {
+	c := t.char
+	return c == '├' || c == '┤' || c == '┬' || c == '┴' || c == '┼' || c == '┌' || c == '└' || c == '┐' || c == '┘'
+}
+
+//IsRoom - is the tile part of a room border?
+func (t *Tile) IsRoom() bool {
+	c := t.char
+	return c == '─' || c == '│' || t.IsCorner()
+}
+
+//BlocksLight - returns whether or not a creature can see through the tile
+func (t *Tile) BlocksLight() bool {
+	return t.IsSolid()
 }
 
 //SetChar - set a char in a level using an x, y, z position
 func (l *Level) SetChar(p Point, c int32) {
-	l.tiles[p.y][p.x] = NewTile(c)
+	l.tiles[p.y][p.x] = &Tile{c}
 }
-
-//
 
 //GetChar - retrieve a char from the dungeon using an x, y, z position
 func (d *Dungeon) GetChar(p Position) int32 {
@@ -86,7 +92,7 @@ func (d *Dungeon) GetChar(p Position) int32 {
 
 //SetChar - set a char in a level using an x, y, z position
 func (d *Dungeon) SetChar(p Position, c int32) {
-	d.SetTile(p, NewTile(c))
+	d.SetTile(p, &Tile{c})
 }
 
 //GetLevel - get one level from the dungeon
@@ -99,7 +105,7 @@ func NewLevel() *Level {
 	var tiles [height][width]*Tile
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
-			tiles[y][x] = NewTile('#')
+			tiles[y][x] = &Tile{'#'}
 		}
 	}
 	return &Level{tiles}
