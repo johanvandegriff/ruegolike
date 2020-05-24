@@ -52,10 +52,10 @@ func doRoomsOverlap(rm1, rm2 room) bool {
 //TODO maybe reject levels with too much empty space
 //TODO different distributions of number of rooms to size of rooms
 //	either lots of small rooms, a few big rooms, or in between
-func genRoomLevel(level *[height][width]int32) {
+func genRoomLevel(level *Level) {
 	for yi := 0; yi < height; yi++ {
 		for xi := 0; xi < width; xi++ {
-			level[yi][xi] = '#' //wall
+			level.SetChar(Point{xi, yi}, '#')
 		}
 	}
 
@@ -194,12 +194,8 @@ func genRoomLevel(level *[height][width]int32) {
 	}
 }
 
-type point struct {
-	x, y int
-}
-
 //TODO replace corridors with ':'
-func tryDrawCorridor(i1, i2 int, rooms []room, level *[height][width]int32) bool {
+func tryDrawCorridor(i1, i2 int, rooms []room, level *Level) bool {
 	if i1 == i2 {
 		return false
 	}
@@ -215,7 +211,7 @@ func tryDrawCorridor(i1, i2 int, rooms []room, level *[height][width]int32) bool
 	goX := true //slightly favor going horizontal first
 	nextSame := false
 
-	points := make([]point, 0)
+	points := make([]Point, 0)
 
 	for {
 		if x < endX {
@@ -256,7 +252,7 @@ func tryDrawCorridor(i1, i2 int, rooms []room, level *[height][width]int32) bool
 
 		//stop when it hits another room other than intended. if not close enough, abort. if close enough, keep it
 		// if level[y][x] == '.' {
-		if level[y][x] == '.' && nextSame { //TODO will this change once corridors are ':'
+		if !level.GetTile(Point{x, y}).isSolid && nextSame { //TODO will this change once corridors are ':'
 			if (x-endX)*(x-endX)+(y-endY)*(y-endY) <= 8*8 {
 				break
 			} else {
@@ -265,21 +261,23 @@ func tryDrawCorridor(i1, i2 int, rooms []room, level *[height][width]int32) bool
 		}
 
 		//stop when it hits a corner of a room
-		if level[y][x] == '┌' || level[y][x] == '┐' || level[y][x] == '┘' || level[y][x] == '└' || level[y][x] == '├' || level[y][x] == '┬' || level[y][x] == '┴' || level[y][x] == '┤' || level[y][x] == '┼' {
+		if level.GetTile(Point{x, y}).isCorner {
 			return false
 		}
 
 		nextSame = false
-		if level[y][x] == '─' || level[y][x] == '│' {
+		if level.GetChar(Point{x, y}) == '─' || level.GetChar(Point{x, y}) == '│' {
 			nextSame = true
 		}
 
-		points = append(points, point{x, y})
+		points = append(points, Point{x, y})
 		// level[y][x] = '.'
 	}
 
 	for _, pt := range points {
-		level[pt.y][pt.x] = '.'
+		if level.GetChar(pt) != '.' {
+			level.SetChar(pt, ':')
+		}
 	}
 
 	//TODO: also stop when it hits anything of interest? (anything but '|','#','.' when moving horizontal or '-','#','.' when moving vertically)
@@ -289,8 +287,8 @@ func tryDrawCorridor(i1, i2 int, rooms []room, level *[height][width]int32) bool
 }
 
 // https://unicode-search.net/unicode-namesearch.pl?term=BOX%20DRAWINGS
-func addBoxArt(level *[height][width]int32, y, x int, new int32) {
-	old := level[y][x]
+func addBoxArt(level *Level, y, x int, new int32) {
+	old := level.GetChar(Point{x, y})
 	combined := new
 	switch old {
 	case '┌':
@@ -546,37 +544,38 @@ func addBoxArt(level *[height][width]int32, y, x int, new int32) {
 	case '┼':
 		combined = '┼'
 	}
-	level[y][x] = combined
+	level.SetChar(Point{x, y}, combined)
 }
 
 // http://roguebasin.roguelikedevelopment.org/index.php?title=Cellular_Automata_Method_for_Generating_Random_Cave-Like_Levels
-func genCaveLevel(level *[height][width]int32) {
+func genCaveLevel(level *Level) {
 	//48 16  40  5 1 4  5 0 3
 	fillprob := 40
 
 	//                 r1,r2,reps r1,r2,reps
 	gens := [...][3]int{{5, 1, 4}, {5, 0, 3}}
 
-	var grid2 [height][width]int32
+	// var grid2 [height][width]int32
+	level2 := NewLevel()
 
 	for yi := 0; yi < height; yi++ {
 		for xi := 0; xi < width; xi++ {
 			if rand.Intn(100) < fillprob {
-				level[yi][xi] = '#' //wall, 40%
+				level.SetChar(Point{xi, yi}, '#') //wall, 40%
 			} else {
-				level[yi][xi] = '.' //empty, 60%
+				level.SetChar(Point{xi, yi}, '.') //empty, 60%
 			}
-			grid2[yi][xi] = '#'
+			level2.SetChar(Point{xi, yi}, '#')
 		}
 	}
 	//border around the edge
 	for yi := 0; yi < height; yi++ {
-		level[yi][0] = '#'
-		level[yi][width-1] = '#'
+		level.SetChar(Point{0, yi}, '#')
+		level.SetChar(Point{width - 1, yi}, '#')
 	}
 	for xi := 0; xi < width; xi++ {
-		level[0][xi] = '#'
-		level[height-1][xi] = '#'
+		level.SetChar(Point{xi, 0}, '#')
+		level.SetChar(Point{xi, height - 1}, '#')
 	}
 
 	for i := 0; i < len(gens); i++ {
@@ -593,7 +592,7 @@ func genCaveLevel(level *[height][width]int32) {
 
 					for ii := -1; ii <= 1; ii++ {
 						for jj := -1; jj <= 1; jj++ {
-							if level[yi+ii][xi+jj] != '.' {
+							if level.GetChar(Point{xi + jj, yi + ii}) != '.' {
 								adjCountR1++
 							}
 						}
@@ -606,21 +605,21 @@ func genCaveLevel(level *[height][width]int32) {
 							if ii < 0 || jj < 0 || ii >= height || jj >= width {
 								continue
 							}
-							if level[ii][jj] != '.' {
+							if level.GetChar(Point{jj, ii}) != '.' {
 								adjCountR2++
 							}
 						}
 					}
 					if adjCountR1 >= r1Cutoff || adjCountR2 <= r2Cutoff {
-						grid2[yi][xi] = '#'
+						level2.SetChar(Point{xi, yi}, '#')
 					} else {
-						grid2[yi][xi] = '.'
+						level2.SetChar(Point{xi, yi}, '.')
 					}
 				}
 			}
 			for yi := 1; yi < height-1; yi++ {
 				for xi := 1; xi < width-1; xi++ {
-					level[yi][xi] = grid2[yi][xi]
+					level.SetTile(Point{xi, yi}, level2.GetTile(Point{xi, yi}))
 				}
 			}
 		}
@@ -628,7 +627,7 @@ func genCaveLevel(level *[height][width]int32) {
 
 }
 
-func floodFill(x, y int, level *[height][width]int32) [height][width]bool {
+func floodFill(x, y int, level *Level) [height][width]bool {
 	var mask [height][width]bool
 	for dy := -1; dy <= 1; dy++ {
 		for dx := -1; dx <= 1; dx++ {
@@ -639,8 +638,8 @@ func floodFill(x, y int, level *[height][width]int32) [height][width]bool {
 	return mask
 }
 
-func floodFillAux(x, y int, level *[height][width]int32, mask *[height][width]bool) {
-	if isXYInRange(x, y) && level[y][x] == '.' && mask[y][x] == false {
+func floodFillAux(x, y int, level *Level, mask *[height][width]bool) {
+	if isXYInRange(x, y) && !level.GetTile(Point{x, y}).isSolid && mask[y][x] == false {
 		mask[y][x] = true
 		// level[y][x] = '~'
 		for dy := -1; dy <= 1; dy++ {
@@ -653,7 +652,7 @@ func floodFillAux(x, y int, level *[height][width]int32, mask *[height][width]bo
 
 const minStairDist = 8 //TODO experiment with this to avoid infinite loops
 
-func tryToAddStairs(z int, stairX, stairY, playerX, playerY int, levels *[depth][height][width]int32) (bool, int, int, int, int) {
+func tryToAddStairs(z int, stairX, stairY, playerX, playerY int, dungeon *Dungeon) (bool, int, int, int, int) {
 	// var stairX, stairY, playerX, playerY int
 	if z > 0 {
 		if z == 1 {
@@ -663,13 +662,13 @@ func tryToAddStairs(z int, stairX, stairY, playerX, playerY int, levels *[depth]
 				}
 				stairX = rand.Intn(width)
 				stairY = rand.Intn(height)
-				if levels[z-1][stairY][stairX] == '.' {
+				if dungeon.GetChar(Position{stairX, stairY, z - 1}) == '.' {
 					break
 				}
 			}
 			playerX, playerY = stairX, stairY
 		}
-		mask := floodFill(stairX, stairY, &levels[z-1])
+		mask := floodFill(stairX, stairY, dungeon.GetLevel(z-1))
 		oldStairX, oldStairY := stairX, stairY
 		for i := 0; ; i++ {
 			if i > 9999 {
@@ -677,20 +676,21 @@ func tryToAddStairs(z int, stairX, stairY, playerX, playerY int, levels *[depth]
 			}
 			stairX = rand.Intn(width)
 			stairY = rand.Intn(height)
-			if mask[stairY][stairX] && levels[z][stairY][stairX] == '.' &&
+			if mask[stairY][stairX] && dungeon.GetChar(Position{stairX, stairY, z - 1}) == '.' && dungeon.GetChar(Position{stairX, stairY, z}) == '.' &&
 				(stairX-oldStairX)*(stairX-oldStairX)+(stairY-oldStairY)*(stairY-oldStairY) >= minStairDist*minStairDist {
 				break
 			}
 		}
-		levels[z-1][stairY][stairX] = '>'
-		levels[z][stairY][stairX] = '<'
+		dungeon.SetChar(Position{stairX, stairY, z - 1}, '>')
+		dungeon.SetChar(Position{stairX, stairY, z}, '<')
 	}
 	return true, stairX, stairY, playerX, playerY
 }
 
 //Generate - generate all the levels in the game
-func Generate() ([depth][height][width]int32, [depth][height][width]bool, Position) {
-	var levels [depth][height][width]int32
+func Generate() (*Dungeon, [depth][height][width]bool, Position) {
+	// var levels [depth][height][width]int32
+	dungeon := NewDungeon()
 	var explored [depth][height][width]bool
 
 	var stairX, stairY, playerX, playerY int
@@ -702,20 +702,14 @@ func Generate() ([depth][height][width]int32, [depth][height][width]bool, Positi
 
 		for !succeeded {
 			if roomType {
-				genCaveLevel(&levels[z])
+				genCaveLevel(dungeon.GetLevel(z))
 			} else {
-				genRoomLevel(&levels[z])
+				genRoomLevel(dungeon.GetLevel(z))
 			}
-			succeeded, stairX2, stairY2, playerX2, playerY2 = tryToAddStairs(z, stairX, stairY, playerX, playerY, &levels)
+			succeeded, stairX2, stairY2, playerX2, playerY2 = tryToAddStairs(z, stairX, stairY, playerX, playerY, dungeon)
 		}
 		stairX, stairY, playerX, playerY = stairX2, stairY2, playerX2, playerY2
 	}
 
-	if debug {
-		levels[0][10][4] = '£'
-		levels[0][10][5] = '#'
-		levels[0][10][6] = '@'
-	}
-
-	return levels, explored, Position{playerX, playerY, 0}
+	return dungeon, explored, Position{playerX, playerY, 0}
 }

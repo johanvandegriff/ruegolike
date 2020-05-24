@@ -13,17 +13,12 @@ const width, height, depth = 48, 16, 32
 const offsetX, offsetY = 1, 2
 const debug = false
 
-//Position - the x, y, and z (depth) of a location in the game
-type Position struct {
-	x int
-	y int
-	z int
-}
-
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
-	levels, explored, playerPos := Generate()
+	// fmt.Println(NewLevel())
+
+	dungeon, explored, playerPos := Generate()
 	// time.Sleep(1 * time.Second)
 
 	tcell.SetEncodingFallback(tcell.EncodingFallbackASCII)
@@ -97,20 +92,20 @@ func main() {
 
 				if newPlayerX >= 0 && newPlayerX < width &&
 					newPlayerY >= 0 && newPlayerY < height &&
-					levels[playerPos.z][newPlayerY][newPlayerX] != '#' {
+					!dungeon.GetTile(Position{newPlayerX, newPlayerY, playerPos.z}).isSolid {
 					playerPos.x = newPlayerX
 					playerPos.y = newPlayerY
 					EmitStr(s, 15, 0, style1, "    ")
 				} else {
 					EmitStr(s, 15, 0, style1, "oof!")
 				}
-			} else if ev.Rune() == '>' && (debug || levels[playerPos.z][playerPos.y][playerPos.x] == '>') {
+			} else if ev.Rune() == '>' && (debug || dungeon.GetChar(playerPos) == '>') {
 				playerPos.z++
-			} else if ev.Rune() == '<' && (debug || levels[playerPos.z][playerPos.y][playerPos.x] == '<') {
+			} else if ev.Rune() == '<' && (debug || dungeon.GetChar(playerPos) == '<') {
 				playerPos.z--
 			}
 		}
 
-		Display(s, playerPos, &visible, &explored[playerPos.z], &levels[playerPos.z])
+		Display(s, playerPos, &visible, &explored[playerPos.z], dungeon.GetLevel(playerPos.z))
 	}
 }
