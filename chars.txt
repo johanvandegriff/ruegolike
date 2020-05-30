@@ -1,5 +1,5 @@
 sharp (currently using):
-├ ┤ ┬ ┴ ┼ ┌ └ ┐ ┘ ─ │
+├ ┤ ┬ ┴ ┼ ┌ └ ┐ ┘ ─ │ ╴ ╵ ╶ ╷
 
 rounded:
 ╭ ╰ ╮ ╯
