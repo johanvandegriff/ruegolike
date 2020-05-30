@@ -119,6 +119,8 @@ func shadowcast(originX, originY, rangeLimit int, visible *[height][width]bool, 
 			visible[y][x] = false
 		}
 	}
+	visible[originY][originX] = true
+	explored[originY][originX] = true
 	//loop through each octant
 	for octant := 0; octant < 8; octant++ {
 		shadowcastAux(octant, originX, originY, rangeLimit, 1, slope{1, 1}, slope{0, 1}, visible, explored, level)
@@ -318,6 +320,145 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 		for y := 0; y < height; y++ {
 			if explored1[y][x] {
 				char := level.GetChar(Point{x, y})
+				if level.GetTile(Point{x, y}).IsRoom() {
+					numFloors := 0
+					for x2 := -1; x2 <= 1; x2++ {
+						for y2 := -1; y2 <= 1; y2++ {
+							if isXYInRange(x+x2, y+y2) && level.GetTile(Point{x + x2, y + y2}).IsRoomFloor() && explored1[y+y2][x+x2] {
+								numFloors++
+							}
+						}
+					}
+					if numFloors == 0 {
+						char = '#'
+					} else if level.GetTile(Point{x, y}).IsCorner() { //corner cases :)
+						// var isRoom [3][3]bool
+						// for x2 := -1; x2 <= 1; x2++ {
+						// 	for y2 := -1; y2 <= 1; y2++ {
+						// 		isRoom[x2+1][y2+1] = isXYInRange(x+x2, y+y2) && level.GetTile(Point{x + x2, y + y2}).IsRoom() && explored1[y+y2][x+x2]
+						// 	}
+						// }
+						isRoomAbove := isXYInRange(x, y-1) && level.GetTile(Point{x, y - 1}).IsRoom() && explored1[y-1][x]
+						isRoomBelow := isXYInRange(x, y+1) && level.GetTile(Point{x, y + 1}).IsRoom() && explored1[y+1][x]
+						isRoomLeft := isXYInRange(x-1, y) && level.GetTile(Point{x - 1, y}).IsRoom() && explored1[y][x-1]
+						isRoomRight := isXYInRange(x+1, y) && level.GetTile(Point{x + 1, y}).IsRoom() && explored1[y][x+1]
+
+						if char == '├' {
+							if isRoomAbove && isRoomBelow && isRoomRight {
+								// char = '├'
+							} else if !isRoomAbove && isRoomBelow && isRoomRight {
+								char = '┌'
+							} else if isRoomAbove && !isRoomBelow && isRoomRight {
+								char = '└'
+							} else if !isRoomAbove && !isRoomBelow && isRoomRight {
+								char = '─'
+							} else if isRoomAbove && isRoomBelow && !isRoomRight {
+								char = '│'
+							} else if !isRoomAbove && isRoomBelow && !isRoomRight {
+								char = '│'
+							} else if isRoomAbove && !isRoomBelow && !isRoomRight {
+								char = '│'
+							} else if !isRoomAbove && !isRoomBelow && !isRoomRight {
+								char = '#'
+							}
+						}
+						if char == '┤' {
+							if isRoomAbove && isRoomBelow && isRoomLeft {
+								// char = '┤'
+							} else if !isRoomAbove && isRoomBelow && isRoomLeft {
+								char = '┐'
+							} else if isRoomAbove && !isRoomBelow && isRoomLeft {
+								char = '┘'
+							} else if !isRoomAbove && !isRoomBelow && isRoomLeft {
+								char = '─'
+							} else if isRoomAbove && isRoomBelow && !isRoomLeft {
+								char = '│'
+							} else if !isRoomAbove && isRoomBelow && !isRoomLeft {
+								char = '│'
+							} else if isRoomAbove && !isRoomBelow && !isRoomLeft {
+								char = '│'
+							} else if !isRoomAbove && !isRoomBelow && !isRoomLeft {
+								char = '#'
+							}
+						}
+						if char == '┬' {
+							if isRoomLeft && isRoomRight && isRoomBelow {
+								// char = '┬'
+							} else if !isRoomLeft && isRoomRight && isRoomBelow {
+								char = '┌'
+							} else if isRoomLeft && !isRoomRight && isRoomBelow {
+								char = '┐'
+							} else if !isRoomLeft && !isRoomRight && isRoomBelow {
+								char = '│'
+							} else if isRoomLeft && isRoomRight && !isRoomBelow {
+								char = '─'
+							} else if !isRoomLeft && isRoomRight && !isRoomBelow {
+								char = '─'
+							} else if isRoomLeft && !isRoomRight && !isRoomBelow {
+								char = '─'
+							} else if !isRoomLeft && !isRoomRight && !isRoomBelow {
+								char = '#'
+							}
+						}
+						if char == '┴' {
+							if isRoomLeft && isRoomRight && isRoomAbove {
+								// char = '┴'
+							} else if !isRoomLeft && isRoomRight && isRoomAbove {
+								char = '└'
+							} else if isRoomLeft && !isRoomRight && isRoomAbove {
+								char = '┘'
+							} else if !isRoomLeft && !isRoomRight && isRoomAbove {
+								char = '│'
+							} else if isRoomLeft && isRoomRight && !isRoomAbove {
+								char = '─'
+							} else if !isRoomLeft && isRoomRight && !isRoomAbove {
+								char = '─'
+							} else if isRoomLeft && !isRoomRight && !isRoomAbove {
+								char = '─'
+							} else if !isRoomLeft && !isRoomRight && !isRoomAbove {
+								char = '#'
+							}
+						}
+						if char == '┼' {
+							if isRoomLeft && isRoomRight && isRoomAbove && isRoomBelow {
+								// char = '┼'
+							} else if !isRoomLeft && isRoomRight && isRoomAbove && isRoomBelow {
+								char = '├'
+							} else if isRoomLeft && !isRoomRight && isRoomAbove && isRoomBelow {
+								char = '┤'
+							} else if !isRoomLeft && !isRoomRight && isRoomAbove && isRoomBelow {
+								char = '│'
+							} else if isRoomLeft && isRoomRight && !isRoomAbove && isRoomBelow {
+								char = '┬'
+							} else if !isRoomLeft && isRoomRight && !isRoomAbove && isRoomBelow {
+								char = '┌'
+							} else if isRoomLeft && !isRoomRight && !isRoomAbove && isRoomBelow {
+								char = '┐'
+							} else if !isRoomLeft && !isRoomRight && !isRoomAbove && isRoomBelow {
+								char = '│'
+							} else if isRoomLeft && isRoomRight && isRoomAbove && !isRoomBelow {
+								char = '┴'
+							} else if !isRoomLeft && isRoomRight && isRoomAbove && !isRoomBelow {
+								char = '└'
+							} else if isRoomLeft && !isRoomRight && isRoomAbove && !isRoomBelow {
+								char = '┘'
+							} else if !isRoomLeft && !isRoomRight && isRoomAbove && !isRoomBelow {
+								char = '│'
+							} else if isRoomLeft && isRoomRight && !isRoomAbove && !isRoomBelow {
+								char = '─'
+							} else if !isRoomLeft && isRoomRight && !isRoomAbove && !isRoomBelow {
+								char = '─'
+							} else if isRoomLeft && !isRoomRight && !isRoomAbove && !isRoomBelow {
+								char = '─'
+							} else if !isRoomLeft && !isRoomRight && !isRoomAbove && !isRoomBelow {
+								char = '#'
+							}
+						}
+					}
+				}
+				// if char == '#' {
+				// 	char = ' '
+				// }
 				if visible[y][x] {
 					s.SetContent(x+offsetX, y+offsetY, char, nil, style1)
 				} else {

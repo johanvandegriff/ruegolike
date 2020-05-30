@@ -60,7 +60,7 @@ func (l *Level) GetChar(p Point) int32 {
 //IsSolid - returns whether or not a creature can move through the tile
 func (t *Tile) IsSolid() bool {
 	c := t.char
-	return c == '#' || t.IsRoom()
+	return c == '#' || c == '─' || c == '│' || t.IsCorner()
 }
 
 //IsCorner - is the tile the corner of a room border?
@@ -69,10 +69,16 @@ func (t *Tile) IsCorner() bool {
 	return c == '├' || c == '┤' || c == '┬' || c == '┴' || c == '┼' || c == '┌' || c == '└' || c == '┐' || c == '┘'
 }
 
-//IsRoom - is the tile part of a room border?
+//IsRoom - is the tile part of a room border, including doors?
 func (t *Tile) IsRoom() bool {
 	c := t.char
-	return c == '─' || c == '│' || t.IsCorner()
+	return c == '─' || c == '│' || c == '*' || t.IsCorner()
+}
+
+//IsRoomFloor - is the tile one that is normally generated inside a room?
+func (t *Tile) IsRoomFloor() bool {
+	c := t.char
+	return c == '.' || c == '>' || c == '<' //|| c == '*'
 }
 
 //BlocksLight - returns whether or not a creature can see through the tile

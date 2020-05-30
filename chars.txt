@@ -1,1 +1,8 @@
-├ ┤ ┬ ┴ ┼ ╭┌ ╰└ ╮┐ ╯┘ ─ │ £
+sharp (currently using):
+├ ┤ ┬ ┴ ┼ ┌ └ ┐ ┘ ─ │
+
+rounded:
+╭ ╰ ╮ ╯
+
+misc:
+£
