@@ -21,20 +21,6 @@ type room struct {
 
 //https://www.geeksforgeeks.org/find-two-rectangles-overlap/
 func doRoomsOverlap(rm1, rm2 room) bool {
-	// r1x1, r1y1, r1x2, r1y2 := r1.x, r1.y, r1.x+r1.w-1, r1.y+r1.h-1
-	// r2x1, r2y1, r2x2, r2y2 := r2.x, r2.y, r2.x+r2.w-1, r2.y+r2.h-1
-
-	// // If one rectangle is on left side of other
-	// if r1x1 >= r2x2 || r2x1 >= r1x2 {
-	// 	return false
-	// }
-
-	// // If one rectangle is above other
-	// if r1y1 <= r2y2 || r2y1 <= r1y2 {
-	// 	return false
-	// }
-
-	// return true
 
 	// If one rectangle is on left side of other
 	if rm1.x >= rm2.x+rm2.w-1 || rm2.x >= rm1.x+rm1.w-1 {
@@ -194,7 +180,6 @@ func genRoomLevel(level *Level) {
 	}
 }
 
-//TODO replace corridors with ':'
 func tryDrawCorridor(i1, i2 int, rooms []room, level *Level) bool {
 	if i1 == i2 {
 		return false
@@ -266,7 +251,18 @@ func tryDrawCorridor(i1, i2 int, rooms []room, level *Level) bool {
 		}
 
 		nextSame = false
-		if level.GetChar(Point{x, y}) == '─' || level.GetChar(Point{x, y}) == '│' {
+		if level.GetChar(Point{x, y}) == '─' {
+			//prevent doors next to each other
+			if level.GetChar(Point{x - 1, y}) == '*' || level.GetChar(Point{x + 1, y}) == '*' {
+				return false
+			}
+			nextSame = true
+		}
+		if level.GetChar(Point{x, y}) == '│' {
+			//prevent doors next to each other
+			if level.GetChar(Point{x, y - 1}) == '*' || level.GetChar(Point{x, y + 1}) == '*' {
+				return false
+			}
 			nextSame = true
 		}
 
@@ -275,14 +271,15 @@ func tryDrawCorridor(i1, i2 int, rooms []room, level *Level) bool {
 	}
 
 	for _, pt := range points {
-		if level.GetChar(pt) != '.' {
+		c := level.GetChar(pt)
+		if c == '─' || c == '│' {
+			level.SetChar(pt, '*')
+		} else if c == '#' {
 			level.SetChar(pt, ':')
 		}
 	}
 
-	//TODO: also stop when it hits anything of interest? (anything but '|','#','.' when moving horizontal or '-','#','.' when moving vertically)
 	//TODO: option for "diagonal" tunnel (alternating x/y)
-	//TODO: no 2 doors next to each other
 	return true
 }
 
