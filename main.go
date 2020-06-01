@@ -110,6 +110,7 @@ func main() {
 				playerPos.x = newPos.x
 				playerPos.y = newPos.y
 			}
+			//TODO fast travel command (or click mouse)
 		}
 
 		Display(s, playerPos, &visible, &explored[playerPos.z], dungeon.GetLevel(playerPos.z))

@@ -36,8 +36,8 @@ func doRoomsOverlap(rm1, rm2 room) bool {
 }
 
 //TODO maybe reject levels with too much empty space
-//TODO different distributions of number of rooms to size of rooms
-//	either lots of small rooms, a few big rooms, or in between
+//TODO different distributions of number of rooms to size of rooms: either lots of small rooms, a few big rooms, or in between
+//TODO try to add a few extra rooms, but don't worry if they fail
 func genRoomLevel(level *Level) {
 	for yi := 0; yi < height; yi++ {
 		for xi := 0; xi < width; xi++ {
@@ -125,7 +125,8 @@ func genRoomLevel(level *Level) {
 	if start == end {
 		end++
 	}
-	extra := 2 //TODO make sure extra corridors are not redundant, and use unused space on the outside of the map?
+	extra := randRangeInclusive(1, 4) //add 1 to 4 extra corridors
+	//TODO make sure extra corridors are not redundant, and use unused space on the outside of the map?
 	//	also maybe add some non-winding corridors
 	//	could use "concentric" rectangles starting from the outside and find intersection with rooms
 	for {
@@ -735,9 +736,9 @@ func Generate() (*Dungeon, [depth][height][width]bool, Position) {
 
 	//replace the up stairs on the first level with a floor, and put the player there
 	playerPos := dungeon.GetLevel(0).FindChar('<')
-	dungeon.GetLevel(0).SetChar(*playerPos, '.')
+	dungeon.GetLevel(0).SetChar(*playerPos, '·')
 
 	//remove the down stairs from the last level
-	dungeon.GetLevel(depth-1).SetChar(*dungeon.GetLevel(depth - 1).FindChar('>'), '.')
+	dungeon.GetLevel(depth-1).SetChar(*dungeon.GetLevel(depth - 1).FindChar('>'), '·')
 	return dungeon, explored, Position{playerPos.x, playerPos.y, 0}
 }
