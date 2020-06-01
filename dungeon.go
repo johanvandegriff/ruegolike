@@ -125,3 +125,20 @@ func NewDungeon() *Dungeon {
 	}
 	return &Dungeon{levels}
 }
+
+//FindChar - find the location of a particular character in the level
+func (l *Level) FindChar(c int32) *Point {
+	for x := 0; x < width; x++ {
+		for y := 0; y < height; y++ {
+			if l.GetChar(Point{x, y}) == c {
+				return &Point{x, y}
+			}
+		}
+	}
+	return nil
+}
+
+//DistSquaredTo - return the square of the distance to another point
+func (p1 *Point) DistSquaredTo(p2 *Point) int {
+	return (p1.x-p2.x)*(p1.x-p2.x) + (p1.y-p2.y)*(p1.y-p2.y)
+}

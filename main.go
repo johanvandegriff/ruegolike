@@ -11,7 +11,7 @@ import (
 
 const width, height, depth = 48, 16, 32
 const offsetX, offsetY = 1, 2
-const debug = true
+const debug = false
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
@@ -101,8 +101,14 @@ func main() {
 				}
 			} else if ev.Rune() == '>' && (debug || dungeon.GetChar(playerPos) == '>') {
 				playerPos.z++
+				newPos := dungeon.GetLevel(playerPos.z).FindChar('<')
+				playerPos.x = newPos.x
+				playerPos.y = newPos.y
 			} else if ev.Rune() == '<' && (debug || dungeon.GetChar(playerPos) == '<') {
 				playerPos.z--
+				newPos := dungeon.GetLevel(playerPos.z).FindChar('>')
+				playerPos.x = newPos.x
+				playerPos.y = newPos.y
 			}
 		}
 

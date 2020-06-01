@@ -649,39 +649,67 @@ func floodFillAux(x, y int, level *Level, mask *[height][width]bool) {
 
 const minStairDist = 8 //TODO experiment with this to avoid infinite loops
 
-func tryToAddStairs(z int, stairX, stairY, playerX, playerY int, dungeon *Dungeon) (bool, int, int, int, int) {
-	// var stairX, stairY, playerX, playerY int
-	if z > 0 {
-		if z == 1 {
-			for i := 0; ; i++ {
-				if i > 9999 {
-					return false, 0, 0, 0, 0
-				}
-				stairX = rand.Intn(width)
-				stairY = rand.Intn(height)
-				if dungeon.GetChar(Position{stairX, stairY, z - 1}) == '·' {
-					break
-				}
-			}
-			playerX, playerY = stairX, stairY
+func tryToAddStairs(level *Level) bool {
+	// var upStairX, upStairY, downStairX, downStairY int
+	var upStair, downStair Point
+
+	//find a place for the up stairs
+	for i := 0; ; i++ {
+		if i > 9999 {
+			return false
 		}
-		mask := floodFill(stairX, stairY, dungeon.GetLevel(z-1))
-		oldStairX, oldStairY := stairX, stairY
-		for i := 0; ; i++ {
-			if i > 9999 {
-				return false, 0, 0, 0, 0
-			}
-			stairX = rand.Intn(width)
-			stairY = rand.Intn(height)
-			if mask[stairY][stairX] && dungeon.GetChar(Position{stairX, stairY, z - 1}) == '·' && dungeon.GetChar(Position{stairX, stairY, z}) == '·' &&
-				(stairX-oldStairX)*(stairX-oldStairX)+(stairY-oldStairY)*(stairY-oldStairY) >= minStairDist*minStairDist {
-				break
-			}
+		upStair = Point{rand.Intn(width), rand.Intn(height)}
+		if level.GetChar(Point{upStair.x, upStair.y}) == '·' {
+			break
 		}
-		dungeon.SetChar(Position{stairX, stairY, z - 1}, '>')
-		dungeon.SetChar(Position{stairX, stairY, z}, '<')
 	}
-	return true, stairX, stairY, playerX, playerY
+
+	mask := floodFill(upStair.x, upStair.y, level)
+	for i := 0; ; i++ {
+		if i > 9999 {
+			return false
+		}
+		downStair = Point{rand.Intn(width), rand.Intn(height)}
+		if mask[downStair.y][downStair.x] && level.GetChar(downStair) == '·' &&
+			upStair.DistSquaredTo(&downStair) >= minStairDist*minStairDist {
+			break
+		}
+	}
+	level.SetChar(upStair, '>')
+	level.SetChar(downStair, '<')
+	return true
+
+	// if z > 0 {
+	// 	if z == 1 {
+	// 		for i := 0; ; i++ {
+	// 			if i > 9999 {
+	// 				return false, 0, 0, 0, 0
+	// 			}
+	// 			stairX = rand.Intn(width)
+	// 			stairY = rand.Intn(height)
+	// 			if dungeon.GetChar(Position{stairX, stairY, z - 1}) == '·' {
+	// 				break
+	// 			}
+	// 		}
+	// 		playerX, playerY = stairX, stairY
+	// 	}
+	// 	mask := floodFill(stairX, stairY, dungeon.GetLevel(z-1))
+	// 	oldStairX, oldStairY := stairX, stairY
+	// 	for i := 0; ; i++ {
+	// 		if i > 9999 {
+	// 			return false, 0, 0, 0, 0
+	// 		}
+	// 		stairX = rand.Intn(width)
+	// 		stairY = rand.Intn(height)
+	// 		if mask[stairY][stairX] && dungeon.GetChar(Position{stairX, stairY, z - 1}) == '·' && dungeon.GetChar(Position{stairX, stairY, z}) == '·' &&
+	// 			(stairX-oldStairX)*(stairX-oldStairX)+(stairY-oldStairY)*(stairY-oldStairY) >= minStairDist*minStairDist {
+	// 			break
+	// 		}
+	// 	}
+	// 	dungeon.SetChar(Position{stairX, stairY, z - 1}, '>')
+	// 	dungeon.SetChar(Position{stairX, stairY, z}, '<')
+	// }
+	// return true, stairX, stairY, playerX, playerY
 }
 
 //Generate - generate all the levels in the game
@@ -690,8 +718,6 @@ func Generate() (*Dungeon, [depth][height][width]bool, Position) {
 	dungeon := NewDungeon()
 	var explored [depth][height][width]bool
 
-	var stairX, stairY, playerX, playerY int
-	var stairX2, stairY2, playerX2, playerY2 int
 	//simple terrain generation
 	for z := 0; z < depth; z++ {
 		roomType := rand.Intn(100) < 20
@@ -703,10 +729,15 @@ func Generate() (*Dungeon, [depth][height][width]bool, Position) {
 			} else {
 				genRoomLevel(dungeon.GetLevel(z))
 			}
-			succeeded, stairX2, stairY2, playerX2, playerY2 = tryToAddStairs(z, stairX, stairY, playerX, playerY, dungeon)
+			succeeded = tryToAddStairs(dungeon.GetLevel(z))
 		}
-		stairX, stairY, playerX, playerY = stairX2, stairY2, playerX2, playerY2
 	}
 
-	return dungeon, explored, Position{playerX, playerY, 0}
+	//replace the up stairs on the first level with a floor, and put the player there
+	playerPos := dungeon.GetLevel(0).FindChar('<')
+	dungeon.GetLevel(0).SetChar(*playerPos, '.')
+
+	//remove the down stairs from the last level
+	dungeon.GetLevel(depth-1).SetChar(*dungeon.GetLevel(depth - 1).FindChar('>'), '.')
+	return dungeon, explored, Position{playerPos.x, playerPos.y, 0}
 }
