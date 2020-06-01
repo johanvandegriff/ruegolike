@@ -78,7 +78,7 @@ func (t *Tile) IsRoom() bool {
 //IsRoomFloor - is the tile one that is normally generated inside a room?
 func (t *Tile) IsRoomFloor() bool {
 	c := t.char
-	return c == '.' || c == '>' || c == '<' //|| c == '*'
+	return c == '·' || c == '>' || c == '<' //|| c == '*'
 }
 
 //BlocksLight - returns whether or not a creature can see through the tile

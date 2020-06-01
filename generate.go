@@ -115,7 +115,7 @@ func genRoomLevel(level *Level) {
 		//floor
 		for i := 1; i < w-1; i++ {
 			for j := 1; j < h-1; j++ {
-				addBoxArt(level, y+j, x+i, '.')
+				addBoxArt(level, y+j, x+i, '·')
 			}
 		}
 	}
@@ -236,8 +236,7 @@ func tryDrawCorridor(i1, i2 int, rooms []room, level *Level) bool {
 		}
 
 		//stop when it hits another room other than intended. if not close enough, abort. if close enough, keep it
-		// if level[y][x] == '.' {
-		if !level.GetTile(Point{x, y}).IsSolid() && nextSame { //TODO will this change once corridors are ':'
+		if !level.GetTile(Point{x, y}).IsSolid() && nextSame {
 			if (x-endX)*(x-endX)+(y-endY)*(y-endY) <= 8*8 {
 				break
 			} else {
@@ -267,7 +266,6 @@ func tryDrawCorridor(i1, i2 int, rooms []room, level *Level) bool {
 		}
 
 		points = append(points, Point{x, y})
-		// level[y][x] = '.'
 	}
 
 	for _, pt := range points {
@@ -562,7 +560,7 @@ func genCaveLevel(level *Level) {
 			if rand.Intn(100) < fillprob {
 				level.SetChar(Point{xi, yi}, '#') //wall, 40%
 			} else {
-				level.SetChar(Point{xi, yi}, '.') //empty, 60%
+				level.SetChar(Point{xi, yi}, '·') //empty, 60%
 			}
 			level2.SetChar(Point{xi, yi}, '#')
 		}
@@ -591,7 +589,7 @@ func genCaveLevel(level *Level) {
 
 					for ii := -1; ii <= 1; ii++ {
 						for jj := -1; jj <= 1; jj++ {
-							if level.GetChar(Point{xi + jj, yi + ii}) != '.' {
+							if level.GetChar(Point{xi + jj, yi + ii}) != '·' {
 								adjCountR1++
 							}
 						}
@@ -604,7 +602,7 @@ func genCaveLevel(level *Level) {
 							if ii < 0 || jj < 0 || ii >= height || jj >= width {
 								continue
 							}
-							if level.GetChar(Point{jj, ii}) != '.' {
+							if level.GetChar(Point{jj, ii}) != '·' {
 								adjCountR2++
 							}
 						}
@@ -612,7 +610,7 @@ func genCaveLevel(level *Level) {
 					if adjCountR1 >= r1Cutoff || adjCountR2 <= r2Cutoff {
 						level2.SetChar(Point{xi, yi}, '#')
 					} else {
-						level2.SetChar(Point{xi, yi}, '.')
+						level2.SetChar(Point{xi, yi}, '·')
 					}
 				}
 			}
@@ -661,7 +659,7 @@ func tryToAddStairs(z int, stairX, stairY, playerX, playerY int, dungeon *Dungeo
 				}
 				stairX = rand.Intn(width)
 				stairY = rand.Intn(height)
-				if dungeon.GetChar(Position{stairX, stairY, z - 1}) == '.' {
+				if dungeon.GetChar(Position{stairX, stairY, z - 1}) == '·' {
 					break
 				}
 			}
@@ -675,7 +673,7 @@ func tryToAddStairs(z int, stairX, stairY, playerX, playerY int, dungeon *Dungeo
 			}
 			stairX = rand.Intn(width)
 			stairY = rand.Intn(height)
-			if mask[stairY][stairX] && dungeon.GetChar(Position{stairX, stairY, z - 1}) == '.' && dungeon.GetChar(Position{stairX, stairY, z}) == '.' &&
+			if mask[stairY][stairX] && dungeon.GetChar(Position{stairX, stairY, z - 1}) == '·' && dungeon.GetChar(Position{stairX, stairY, z}) == '·' &&
 				(stairX-oldStairX)*(stairX-oldStairX)+(stairY-oldStairY)*(stairY-oldStairY) >= minStairDist*minStairDist {
 				break
 			}

@@ -321,10 +321,12 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 			if explored1[y][x] {
 				char := level.GetChar(Point{x, y})
 				if level.GetTile(Point{x, y}).IsRoom() && char != '*' {
+					var isFloor [3][3]bool
 					numFloors := 0
 					for x2 := -1; x2 <= 1; x2++ {
 						for y2 := -1; y2 <= 1; y2++ {
-							if isXYInRange(x+x2, y+y2) && level.GetTile(Point{x + x2, y + y2}).IsRoomFloor() && explored1[y+y2][x+x2] {
+							isFloor[x2+1][y2+1] = isXYInRange(x+x2, y+y2) && level.GetTile(Point{x + x2, y + y2}).IsRoomFloor() && explored1[y+y2][x+x2]
+							if isFloor[x2+1][y2+1] {
 								numFloors++
 							}
 						}
@@ -354,8 +356,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							} else if !isRoomBelow && !isRoomRight {
 								char = '#'
 							}
-						}
-						if char == '└' {
+						} else if char == '└' {
 							if isRoomAbove && isRoomRight {
 								// char = '└'
 							} else if !isRoomAbove && isRoomRight {
@@ -365,8 +366,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							} else if !isRoomAbove && !isRoomRight {
 								char = '#'
 							}
-						}
-						if char == '┐' {
+						} else if char == '┐' {
 							if isRoomBelow && isRoomLeft {
 								// char = '┐'
 							} else if !isRoomBelow && isRoomLeft {
@@ -376,8 +376,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							} else if !isRoomBelow && !isRoomLeft {
 								char = '#'
 							}
-						}
-						if char == '┘' {
+						} else if char == '┘' {
 							if isRoomAbove && isRoomLeft {
 								// char = '┘'
 							} else if !isRoomAbove && isRoomLeft {
@@ -387,9 +386,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							} else if !isRoomAbove && !isRoomLeft {
 								char = '#'
 							}
-						}
-
-						if char == '─' {
+						} else if char == '─' {
 							if isRoomLeft && isRoomRight {
 								// char = '─'
 							} else if !isRoomLeft && isRoomRight {
@@ -399,8 +396,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							} else if !isRoomLeft && !isRoomRight {
 								char = '#'
 							}
-						}
-						if char == '│' {
+						} else if char == '│' {
 							if isRoomAbove && isRoomBelow {
 								// char = '│'
 							} else if !isRoomAbove && isRoomBelow {
@@ -410,9 +406,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							} else if !isRoomAbove && !isRoomBelow {
 								char = '#'
 							}
-						}
-
-						if char == '├' {
+						} else if char == '├' {
 							if isRoomAbove && isRoomBelow && isRoomRight {
 								// char = '├'
 							} else if !isRoomAbove && isRoomBelow && isRoomRight {
@@ -430,8 +424,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							} else if !isRoomAbove && !isRoomBelow && !isRoomRight {
 								char = '#'
 							}
-						}
-						if char == '┤' {
+						} else if char == '┤' {
 							if isRoomAbove && isRoomBelow && isRoomLeft {
 								// char = '┤'
 							} else if !isRoomAbove && isRoomBelow && isRoomLeft {
@@ -449,8 +442,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							} else if !isRoomAbove && !isRoomBelow && !isRoomLeft {
 								char = '#'
 							}
-						}
-						if char == '┬' {
+						} else if char == '┬' {
 							if isRoomLeft && isRoomRight && isRoomBelow {
 								// char = '┬'
 							} else if !isRoomLeft && isRoomRight && isRoomBelow {
@@ -468,8 +460,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							} else if !isRoomLeft && !isRoomRight && !isRoomBelow {
 								char = '#'
 							}
-						}
-						if char == '┴' {
+						} else if char == '┴' {
 							if isRoomLeft && isRoomRight && isRoomAbove {
 								// char = '┴'
 							} else if !isRoomLeft && isRoomRight && isRoomAbove {
@@ -487,9 +478,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							} else if !isRoomLeft && !isRoomRight && !isRoomAbove {
 								char = '#'
 							}
-						}
-
-						if char == '┼' {
+						} else if char == '┼' {
 							if isRoomLeft && isRoomRight && isRoomAbove && isRoomBelow {
 								// char = '┼'
 							} else if !isRoomLeft && isRoomRight && isRoomAbove && isRoomBelow {
@@ -524,6 +513,153 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 								char = '#'
 							}
 						}
+
+						isFloorTop := isFloor[1][0]
+						isFloorBottom := isFloor[1][2]
+						isFloorLeft := isFloor[0][1]
+						isFloorRight := isFloor[2][1]
+
+						isFloorTopLeft := isFloor[0][0]
+						isFloorTopRight := isFloor[2][0]
+						isFloorBottomLeft := isFloor[0][2]
+						isFloorBottomRight := isFloor[2][2]
+
+						isFloorTopAny := isFloorTop || isFloorTopLeft || isFloorTopRight
+						isFloorBottomAny := isFloorBottom || isFloorBottomLeft || isFloorBottomRight
+						isFloorLeftAny := isFloorLeft || isFloorTopLeft || isFloorBottomLeft
+						isFloorRightAny := isFloorRight || isFloorTopRight || isFloorBottomRight
+
+						if char == '┌' {
+							if !isFloorBottomRight {
+								char = '#'
+							}
+						} else if char == '└' {
+							if !isFloorTopRight {
+								char = '#'
+							}
+						} else if char == '┐' {
+							if !isFloorBottomLeft {
+								char = '#'
+							}
+						} else if char == '┘' {
+							if !isFloorTopLeft {
+								char = '#'
+							}
+						} else if char == '─' {
+							if !isFloorTopAny && !isFloorBottomAny {
+								char = '#'
+							}
+						} else if char == '│' {
+							if !isFloorLeftAny && !isFloorRightAny {
+								char = '#'
+							}
+						} else if char == '├' {
+							if !isFloorLeftAny && !isFloorTopRight && !isFloorBottomRight {
+								char = '#'
+							} else if !isFloorLeftAny && !isFloorTopRight && isFloorBottomRight {
+								char = '┌'
+							} else if !isFloorLeftAny && isFloorTopRight && !isFloorBottomRight {
+								char = '└'
+							} else if !isFloorLeftAny && isFloorTopRight && isFloorBottomRight {
+								// char = '├'
+							} else if isFloorLeftAny && !isFloorTopRight && !isFloorBottomRight {
+								char = '│'
+							} else if isFloorLeftAny && !isFloorTopRight && isFloorBottomRight {
+								// char = '├'
+							} else if isFloorLeftAny && isFloorTopRight && !isFloorBottomRight {
+								// char = '├'
+							} else if isFloorLeftAny && isFloorTopRight && isFloorBottomRight {
+								// char = '├'
+							}
+						} else if char == '┤' {
+							if !isFloorRightAny && !isFloorTopLeft && !isFloorBottomLeft {
+								char = '#'
+							} else if !isFloorRightAny && !isFloorTopLeft && isFloorBottomLeft {
+								char = '┐'
+							} else if !isFloorRightAny && isFloorTopLeft && !isFloorBottomLeft {
+								char = '┘'
+							} else if !isFloorRightAny && isFloorTopLeft && isFloorBottomLeft {
+								// char = '┤'
+							} else if isFloorRightAny && !isFloorTopLeft && !isFloorBottomLeft {
+								char = '│'
+							} else if isFloorRightAny && !isFloorTopLeft && isFloorBottomLeft {
+								// char = '┤'
+							} else if isFloorRightAny && isFloorTopLeft && !isFloorBottomLeft {
+								// char = '┤'
+							} else if isFloorRightAny && isFloorTopLeft && isFloorBottomLeft {
+								// char = '┤'
+							}
+						} else if char == '┬' {
+							if !isFloorTopAny && !isFloorBottomLeft && !isFloorBottomRight {
+								char = '#'
+							} else if !isFloorTopAny && !isFloorBottomLeft && isFloorBottomRight {
+								char = '┌'
+							} else if !isFloorTopAny && isFloorBottomLeft && !isFloorBottomRight {
+								char = '┐'
+							} else if !isFloorTopAny && isFloorBottomLeft && isFloorBottomRight {
+								// char = '┬'
+							} else if isFloorTopAny && !isFloorBottomLeft && !isFloorBottomRight {
+								char = '─'
+							} else if isFloorTopAny && !isFloorBottomLeft && isFloorBottomRight {
+								// char = '┬'
+							} else if isFloorTopAny && isFloorBottomLeft && !isFloorBottomRight {
+								// char = '┬'
+							} else if isFloorTopAny && isFloorBottomLeft && isFloorBottomRight {
+								// char = '┬'
+							}
+						} else if char == '┴' {
+							if !isFloorBottomAny && !isFloorTopLeft && !isFloorTopRight {
+								char = '#'
+							} else if !isFloorBottomAny && !isFloorTopLeft && isFloorTopRight {
+								char = '└'
+							} else if !isFloorBottomAny && isFloorTopLeft && !isFloorTopRight {
+								char = '┘'
+							} else if !isFloorBottomAny && isFloorTopLeft && isFloorTopRight {
+								// char = '┴'
+							} else if isFloorBottomAny && !isFloorTopLeft && !isFloorTopRight {
+								char = '─'
+							} else if isFloorBottomAny && !isFloorTopLeft && isFloorTopRight {
+								// char = '┴'
+							} else if isFloorBottomAny && isFloorTopLeft && !isFloorTopRight {
+								// char = '┴'
+							} else if isFloorBottomAny && isFloorTopLeft && isFloorTopRight {
+								// char = '┴'
+							}
+						} else if char == '┼' {
+							if !isFloorBottomLeft && !isFloorBottomRight && !isFloorTopLeft && !isFloorTopRight {
+								char = '#'
+							} else if !isFloorBottomLeft && !isFloorBottomRight && !isFloorTopLeft && isFloorTopRight {
+								char = '└'
+							} else if !isFloorBottomLeft && !isFloorBottomRight && isFloorTopLeft && !isFloorTopRight {
+								char = '┘'
+							} else if !isFloorBottomLeft && !isFloorBottomRight && isFloorTopLeft && isFloorTopRight {
+								char = '┴'
+							} else if !isFloorBottomLeft && isFloorBottomRight && !isFloorTopLeft && !isFloorTopRight {
+								char = '┌'
+							} else if !isFloorBottomLeft && isFloorBottomRight && !isFloorTopLeft && isFloorTopRight {
+								char = '├'
+							} else if !isFloorBottomLeft && isFloorBottomRight && isFloorTopLeft && !isFloorTopRight {
+								// char = '┼'
+							} else if !isFloorBottomLeft && isFloorBottomRight && isFloorTopLeft && isFloorTopRight {
+								// char = '┼'
+							} else if isFloorBottomLeft && !isFloorBottomRight && !isFloorTopLeft && !isFloorTopRight {
+								char = '┐'
+							} else if isFloorBottomLeft && !isFloorBottomRight && !isFloorTopLeft && isFloorTopRight {
+								// char = '┼'
+							} else if isFloorBottomLeft && !isFloorBottomRight && isFloorTopLeft && !isFloorTopRight {
+								char = '┤'
+							} else if isFloorBottomLeft && !isFloorBottomRight && isFloorTopLeft && isFloorTopRight {
+								// char = '┼'
+							} else if isFloorBottomLeft && isFloorBottomRight && !isFloorTopLeft && !isFloorTopRight {
+								char = '┬'
+							} else if isFloorBottomLeft && isFloorBottomRight && !isFloorTopLeft && isFloorTopRight {
+								// char = '┼'
+							} else if isFloorBottomLeft && isFloorBottomRight && isFloorTopLeft && !isFloorTopRight {
+								// char = '┼'
+							} else if isFloorBottomLeft && isFloorBottomRight && isFloorTopLeft && isFloorTopRight {
+								// char = '┼'
+							}
+						}
 					}
 				}
 				// if char == '#' {
@@ -536,7 +672,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 				}
 			} else {
 				if debug {
-					s.SetContent(x+offsetX, y+offsetY, level.GetChar(Point{x, y}), nil, style2)
+					s.SetContent(x+offsetX, y+offsetY, level.GetChar(Point{x, y}), nil, tcell.StyleDefault.Foreground(tcell.ColorDarkRed).Background(tcell.ColorBlack))
 				} else {
 					s.SetContent(x+offsetX, y+offsetY, ' ', nil, style2)
 				}
