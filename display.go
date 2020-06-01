@@ -332,7 +332,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 						}
 					}
 					if numFloors == 0 {
-						char = '#'
+						char = ' '
 					} else {
 						// var isRoom [3][3]bool
 						// for x2 := -1; x2 <= 1; x2++ {
@@ -354,7 +354,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							} else if isRoomBelow && !isRoomRight {
 								char = '╷'
 							} else if !isRoomBelow && !isRoomRight {
-								char = '#'
+								char = ' '
 							}
 						} else if char == '└' {
 							if isRoomAbove && isRoomRight {
@@ -364,7 +364,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							} else if isRoomAbove && !isRoomRight {
 								char = '╵'
 							} else if !isRoomAbove && !isRoomRight {
-								char = '#'
+								char = ' '
 							}
 						} else if char == '┐' {
 							if isRoomBelow && isRoomLeft {
@@ -374,7 +374,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							} else if isRoomBelow && !isRoomLeft {
 								char = '╷'
 							} else if !isRoomBelow && !isRoomLeft {
-								char = '#'
+								char = ' '
 							}
 						} else if char == '┘' {
 							if isRoomAbove && isRoomLeft {
@@ -384,7 +384,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							} else if isRoomAbove && !isRoomLeft {
 								char = '╵'
 							} else if !isRoomAbove && !isRoomLeft {
-								char = '#'
+								char = ' '
 							}
 						} else if char == '─' {
 							if isRoomLeft && isRoomRight {
@@ -394,7 +394,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							} else if isRoomLeft && !isRoomRight {
 								char = '╴'
 							} else if !isRoomLeft && !isRoomRight {
-								char = '#'
+								char = ' '
 							}
 						} else if char == '│' {
 							if isRoomAbove && isRoomBelow {
@@ -404,7 +404,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							} else if isRoomAbove && !isRoomBelow {
 								char = '╵'
 							} else if !isRoomAbove && !isRoomBelow {
-								char = '#'
+								char = ' '
 							}
 						} else if char == '├' {
 							if isRoomAbove && isRoomBelow && isRoomRight {
@@ -422,7 +422,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							} else if isRoomAbove && !isRoomBelow && !isRoomRight {
 								char = '╵'
 							} else if !isRoomAbove && !isRoomBelow && !isRoomRight {
-								char = '#'
+								char = ' '
 							}
 						} else if char == '┤' {
 							if isRoomAbove && isRoomBelow && isRoomLeft {
@@ -440,7 +440,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							} else if isRoomAbove && !isRoomBelow && !isRoomLeft {
 								char = '╵'
 							} else if !isRoomAbove && !isRoomBelow && !isRoomLeft {
-								char = '#'
+								char = ' '
 							}
 						} else if char == '┬' {
 							if isRoomLeft && isRoomRight && isRoomBelow {
@@ -458,7 +458,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							} else if isRoomLeft && !isRoomRight && !isRoomBelow {
 								char = '╴'
 							} else if !isRoomLeft && !isRoomRight && !isRoomBelow {
-								char = '#'
+								char = ' '
 							}
 						} else if char == '┴' {
 							if isRoomLeft && isRoomRight && isRoomAbove {
@@ -476,7 +476,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							} else if isRoomLeft && !isRoomRight && !isRoomAbove {
 								char = '╴'
 							} else if !isRoomLeft && !isRoomRight && !isRoomAbove {
-								char = '#'
+								char = ' '
 							}
 						} else if char == '┼' {
 							if isRoomLeft && isRoomRight && isRoomAbove && isRoomBelow {
@@ -510,7 +510,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							} else if isRoomLeft && !isRoomRight && !isRoomAbove && !isRoomBelow {
 								char = '╴'
 							} else if !isRoomLeft && !isRoomRight && !isRoomAbove && !isRoomBelow {
-								char = '#'
+								char = ' '
 							}
 						}
 
@@ -531,31 +531,31 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 
 						if char == '┌' {
 							if !isFloorBottomRight {
-								char = '#'
+								char = ' '
 							}
 						} else if char == '└' {
 							if !isFloorTopRight {
-								char = '#'
+								char = ' '
 							}
 						} else if char == '┐' {
 							if !isFloorBottomLeft {
-								char = '#'
+								char = ' '
 							}
 						} else if char == '┘' {
 							if !isFloorTopLeft {
-								char = '#'
+								char = ' '
 							}
 						} else if char == '─' {
 							if !isFloorTopAny && !isFloorBottomAny {
-								char = '#'
+								char = ' '
 							}
 						} else if char == '│' {
 							if !isFloorLeftAny && !isFloorRightAny {
-								char = '#'
+								char = ' '
 							}
 						} else if char == '├' {
 							if !isFloorLeftAny && !isFloorTopRight && !isFloorBottomRight {
-								char = '#'
+								char = ' '
 							} else if !isFloorLeftAny && !isFloorTopRight && isFloorBottomRight {
 								char = '┌'
 							} else if !isFloorLeftAny && isFloorTopRight && !isFloorBottomRight {
@@ -573,7 +573,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							}
 						} else if char == '┤' {
 							if !isFloorRightAny && !isFloorTopLeft && !isFloorBottomLeft {
-								char = '#'
+								char = ' '
 							} else if !isFloorRightAny && !isFloorTopLeft && isFloorBottomLeft {
 								char = '┐'
 							} else if !isFloorRightAny && isFloorTopLeft && !isFloorBottomLeft {
@@ -591,7 +591,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							}
 						} else if char == '┬' {
 							if !isFloorTopAny && !isFloorBottomLeft && !isFloorBottomRight {
-								char = '#'
+								char = ' '
 							} else if !isFloorTopAny && !isFloorBottomLeft && isFloorBottomRight {
 								char = '┌'
 							} else if !isFloorTopAny && isFloorBottomLeft && !isFloorBottomRight {
@@ -609,7 +609,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							}
 						} else if char == '┴' {
 							if !isFloorBottomAny && !isFloorTopLeft && !isFloorTopRight {
-								char = '#'
+								char = ' '
 							} else if !isFloorBottomAny && !isFloorTopLeft && isFloorTopRight {
 								char = '└'
 							} else if !isFloorBottomAny && isFloorTopLeft && !isFloorTopRight {
@@ -627,7 +627,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 							}
 						} else if char == '┼' {
 							if !isFloorBottomLeft && !isFloorBottomRight && !isFloorTopLeft && !isFloorTopRight {
-								char = '#'
+								char = ' '
 							} else if !isFloorBottomLeft && !isFloorBottomRight && !isFloorTopLeft && isFloorTopRight {
 								char = '└'
 							} else if !isFloorBottomLeft && !isFloorBottomRight && isFloorTopLeft && !isFloorTopRight {
@@ -662,9 +662,6 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 						}
 					}
 				}
-				// if char == '#' {
-				// 	char = ' '
-				// }
 				if visible[y][x] {
 					s.SetContent(x+offsetX, y+offsetY, char, nil, style1)
 				} else {
@@ -684,7 +681,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 	s.ShowCursor(playerX+offsetX, playerY+offsetY)                   //highlight the player
 
 	// s.SetContent(3, 7, tcell.RuneHLine, nil, style)
-	// s.SetContent(3, 8, '#', nil, style)
+	// s.SetContent(3, 8, ' ', nil, style)
 	// drawBox(s, 1, 2, 3, 4, style, 'a')
 	s.Show()
 	// s.Sync()

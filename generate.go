@@ -41,7 +41,7 @@ func doRoomsOverlap(rm1, rm2 room) bool {
 func genRoomLevel(level *Level) {
 	for yi := 0; yi < height; yi++ {
 		for xi := 0; xi < width; xi++ {
-			level.SetChar(Point{xi, yi}, '#')
+			level.SetChar(Point{xi, yi}, ' ')
 		}
 	}
 
@@ -272,7 +272,7 @@ func tryDrawCorridor(i1, i2 int, rooms []room, level *Level) bool {
 		c := level.GetChar(pt)
 		if c == '─' || c == '│' {
 			level.SetChar(pt, '*')
-		} else if c == '#' {
+		} else if c == ' ' {
 			level.SetChar(pt, ':')
 		}
 	}

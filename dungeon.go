@@ -60,7 +60,7 @@ func (l *Level) GetChar(p Point) int32 {
 //IsSolid - returns whether or not a creature can move through the tile
 func (t *Tile) IsSolid() bool {
 	c := t.char
-	return c == '#' || c == '─' || c == '│' || t.IsCorner()
+	return c == ' ' || c == '#' || c == '─' || c == '│' || t.IsCorner()
 }
 
 //IsCorner - is the tile the corner of a room border?
@@ -111,7 +111,7 @@ func NewLevel() *Level {
 	var tiles [height][width]*Tile
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
-			tiles[y][x] = &Tile{'#'}
+			tiles[y][x] = &Tile{' '}
 		}
 	}
 	return &Level{tiles}

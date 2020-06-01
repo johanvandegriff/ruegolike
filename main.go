@@ -11,7 +11,7 @@ import (
 
 const width, height, depth = 48, 16, 32
 const offsetX, offsetY = 1, 2
-const debug = false
+const debug = true
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
