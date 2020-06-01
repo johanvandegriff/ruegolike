@@ -99,12 +99,12 @@ func main() {
 				} else {
 					EmitStr(s, 15, 0, style1, "oof!")
 				}
-			} else if ev.Rune() == '>' && (debug || dungeon.GetChar(playerPos) == '>') {
+			} else if playerPos.z < depth-1 && ev.Rune() == '>' && (debug || dungeon.GetChar(playerPos) == '>') {
 				playerPos.z++
 				newPos := dungeon.GetLevel(playerPos.z).FindChar('<')
 				playerPos.x = newPos.x
 				playerPos.y = newPos.y
-			} else if ev.Rune() == '<' && (debug || dungeon.GetChar(playerPos) == '<') {
+			} else if playerPos.z > 0 && ev.Rune() == '<' && (debug || dungeon.GetChar(playerPos) == '<') {
 				playerPos.z--
 				newPos := dungeon.GetLevel(playerPos.z).FindChar('>')
 				playerPos.x = newPos.x

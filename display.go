@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/gdamore/tcell"
@@ -311,6 +312,8 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 
 	style1 := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
 	style2 := tcell.StyleDefault.Foreground(tcell.ColorDarkSlateGray).Background(tcell.ColorBlack)
+
+	EmitStr(s, 0, 19, style1, fmt.Sprintf("coords:%02d,%02d,%02d", playerPos.x, playerPos.y, playerPos.z))
 
 	rangeLimit := -1
 	shadowcast(playerX, playerY, rangeLimit, visible, explored1, level)
