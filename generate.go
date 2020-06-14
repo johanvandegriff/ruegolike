@@ -274,7 +274,7 @@ func tryDrawCorridor(i1, i2 int, rooms []room, level *Level) bool {
 		if c == '─' || c == '│' {
 			level.SetChar(pt, '*')
 		} else if c == ' ' {
-			level.SetChar(pt, ':')
+			level.SetChar(pt, '░') //'▒'
 		}
 	}
 

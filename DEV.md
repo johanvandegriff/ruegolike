@@ -24,7 +24,7 @@ Update: looks like RogueBasin has a similar [article](http://roguebasin.roguelik
 * display the player, highlighted 
 
 ### player verbs
-* move: numpad/hjklyubn/qweasdzxc/click screen?
+* move: numpad/arrow keys/p[;' (diagonals)/click screen
 
 
 
@@ -55,11 +55,13 @@ Update: looks like RogueBasin has a similar [article](http://roguebasin.roguelik
 
 ## level 2: message system
 ### player verbs
-* view message log: m
+* view message log: m (actually not implemented until tabs)
 ### messages
 * running into a wall: "oof!"
 * going up stairs: "you walk up the stairs"
 * going down stairs: "you walk down the stairs"
+* entering a new level: "this level you have entered looks completely new to you"
+* note: must deal with multiple messages with "--more--"
 
 
 
@@ -83,6 +85,8 @@ Update: looks like RogueBasin has a similar [article](http://roguebasin.roguelik
 * death
 
 ### messages
+* "an enemy approaches you"
+* "you approach an enemy"
 * "the enemy hits you"
 * "you hit the enemy"
 * "the enemy kicks you"
@@ -100,11 +104,11 @@ Update: looks like RogueBasin has a similar [article](http://roguebasin.roguelik
 ### player verbs
 * pick up: ,
 * drop: d
-* equip: e
-* unequip: u
+* equip/unequip: e
 * throw: t
 * kick: k
 	* kicking an item will propel it forward
+	* kicking a creature will attack it, not adding your weapon damage
 
 ### status
 * inventory sidebar
@@ -112,10 +116,63 @@ Update: looks like RogueBasin has a similar [article](http://roguebasin.roguelik
 * AC
 
 
+##level 5: tabs
+### display
+* tabbed interface on the right
+
+### tabs
+* tutorial/instructions/help
+* inventory
+* list of player verbs
+* message history
+
+### player verbs
+* view inventory: i
+* view message history: m
+* view help tab: ?
+* view any tab: click
+
+
+
+
+
+
+
+
+##level X:
+### tiles
+* 
+
+### creatures
+* 
+
+### generation
+* 
+
+### display
+* 
+
+### player verbs
+* 
+
+### messages
+* 
+
+### status
+* 
+
+### tabs
+* 
+
+
+
+
 
 
 
 # things to add
+* autowalk when screen clicked
+* give more info when screen right clicked
 * message system
 * goal/win condition
 * can of grease, duct tape

@@ -665,6 +665,18 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 						}
 					}
 				}
+				if char == '*' {
+					char = '▪'
+				}
+				if char == '<' {
+					char = '▴' //'▲' //'↑'
+				}
+				if char == '>' {
+					char = '▾' //'▼' //'↓'
+				}
+				if char == '#' {
+					char = '█'
+				}
 				if visible[y][x] {
 					s.SetContent(x+offsetX, y+offsetY, char, nil, style1)
 				} else {

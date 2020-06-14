@@ -58,61 +58,57 @@ func main() {
 			}
 			EmitStr(s, 0, 0, style1, fmt.Sprintf("%c", ev.Rune()))
 			EmitStr(s, 2, 0, style1, fmt.Sprintf("%s                   ", ev.Name()))
-			var deltaX, deltaY int
-			if ev.Name() == "Left" {
-				deltaX, deltaY = -1, 0
-			} else if ev.Name() == "Right" {
-				deltaX, deltaY = 1, 0
-			} else if ev.Name() == "Up" {
-				deltaX, deltaY = 0, -1
-			} else if ev.Name() == "Down" {
-				deltaX, deltaY = 0, 1
-			} else if ev.Rune() == '1' {
-				deltaX, deltaY = -1, 1
-			} else if ev.Rune() == '2' {
-				deltaX, deltaY = 0, 1
-			} else if ev.Rune() == '3' {
-				deltaX, deltaY = 1, 1
-			} else if ev.Rune() == '4' {
-				deltaX, deltaY = -1, 0
-			} else if ev.Rune() == '5' {
-				deltaX, deltaY = 0, 0
-			} else if ev.Rune() == '6' {
-				deltaX, deltaY = 1, 0
-			} else if ev.Rune() == '7' {
-				deltaX, deltaY = -1, -1
-			} else if ev.Rune() == '8' {
-				deltaX, deltaY = 0, -1
-			} else if ev.Rune() == '9' {
-				deltaX, deltaY = 1, -1
-			}
-			if deltaX != 0 || deltaY != 0 {
-				newPlayerX := playerPos.x + deltaX
-				newPlayerY := playerPos.y + deltaY
-
-				if newPlayerX >= 0 && newPlayerX < width &&
-					newPlayerY >= 0 && newPlayerY < height &&
-					!dungeon.GetTile(Position{newPlayerX, newPlayerY, playerPos.z}).IsSolid() {
-					playerPos.x = newPlayerX
-					playerPos.y = newPlayerY
-					EmitStr(s, 15, 0, style1, "    ")
-				} else {
-					EmitStr(s, 15, 0, style1, "oof!")
-				}
-			} else if playerPos.z < depth-1 && ev.Rune() == '>' && (debug || dungeon.GetChar(playerPos) == '>') {
-				playerPos.z++
-				newPos := dungeon.GetLevel(playerPos.z).FindChar('<')
-				playerPos.x = newPos.x
-				playerPos.y = newPos.y
-			} else if playerPos.z > 0 && ev.Rune() == '<' && (debug || dungeon.GetChar(playerPos) == '<') {
-				playerPos.z--
-				newPos := dungeon.GetLevel(playerPos.z).FindChar('>')
-				playerPos.x = newPos.x
-				playerPos.y = newPos.y
-			}
-			//TODO fast travel command (or click mouse)
+			processMoveEvent(ev.Name(), ev.Rune(), &playerPos, dungeon, s, style1)
 		}
 
 		Display(s, playerPos, &visible, &explored[playerPos.z], dungeon.GetLevel(playerPos.z))
 	}
+}
+
+func processMoveEvent(evName string, evRune rune, playerPos *Position, dungeon *Dungeon, s tcell.Screen, style1 tcell.Style) {
+	var deltaX, deltaY int
+	if evRune == '1' || evRune == ';' {
+		deltaX, deltaY = -1, 1
+	} else if evRune == '2' || evName == "Down" {
+		deltaX, deltaY = 0, 1
+	} else if evRune == '3' || evRune == '\'' {
+		deltaX, deltaY = 1, 1
+	} else if evRune == '4' || evName == "Left" {
+		deltaX, deltaY = -1, 0
+	} else if evRune == '5' {
+		// deltaX, deltaY = 0, 0 //TODO run
+	} else if evRune == '6' || evName == "Right" {
+		deltaX, deltaY = 1, 0
+	} else if evRune == '7' || evRune == 'p' {
+		deltaX, deltaY = -1, -1
+	} else if evRune == '8' || evName == "Up" {
+		deltaX, deltaY = 0, -1
+	} else if evRune == '9' || evRune == '[' {
+		deltaX, deltaY = 1, -1
+	}
+	if deltaX != 0 || deltaY != 0 {
+		newPlayerX := playerPos.x + deltaX
+		newPlayerY := playerPos.y + deltaY
+
+		if newPlayerX >= 0 && newPlayerX < width &&
+			newPlayerY >= 0 && newPlayerY < height &&
+			!dungeon.GetTile(Position{newPlayerX, newPlayerY, playerPos.z}).IsSolid() {
+			playerPos.x = newPlayerX
+			playerPos.y = newPlayerY
+			EmitStr(s, 15, 0, style1, "    ")
+		} else {
+			EmitStr(s, 15, 0, style1, "oof!")
+		}
+	} else if playerPos.z < depth-1 && (evRune == '.' || evRune == '>') && (debug || dungeon.GetChar(*playerPos) == '>') {
+		playerPos.z++
+		newPos := dungeon.GetLevel(playerPos.z).FindChar('<')
+		playerPos.x = newPos.x
+		playerPos.y = newPos.y
+	} else if playerPos.z > 0 && (evRune == '.' || evRune == '<') && (debug || dungeon.GetChar(*playerPos) == '<') {
+		playerPos.z--
+		newPos := dungeon.GetLevel(playerPos.z).FindChar('>')
+		playerPos.x = newPos.x
+		playerPos.y = newPos.y
+	}
+	//TODO fast travel command (or click mouse)
 }
