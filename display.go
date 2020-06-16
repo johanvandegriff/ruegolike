@@ -310,10 +310,7 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 	playerX := playerPos.x
 	playerY := playerPos.y
 
-	style1 := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
-	style2 := tcell.StyleDefault.Foreground(tcell.ColorDarkSlateGray).Background(tcell.ColorBlack)
-
-	EmitStr(s, 0, 19, style1, fmt.Sprintf("coords:%02d,%02d,%02d", playerPos.x, playerPos.y, playerPos.z))
+	EmitStr(s, 0, 19, StyleDefault, fmt.Sprintf("coords:%02d,%02d,%02d", playerPos.x, playerPos.y, playerPos.z))
 
 	rangeLimit := -1
 	shadowcast(playerX, playerY, rangeLimit, visible, explored1, level)
@@ -678,21 +675,21 @@ func Display(s tcell.Screen, playerPos Position, visible *[height][width]bool, e
 					char = '█'
 				}
 				if visible[y][x] {
-					s.SetContent(x+offsetX, y+offsetY, char, nil, style1)
+					s.SetContent(x+offsetX, y+offsetY, char, nil, StyleDefault)
 				} else {
-					s.SetContent(x+offsetX, y+offsetY, char, nil, style2)
+					s.SetContent(x+offsetX, y+offsetY, char, nil, StyleNotVisible)
 				}
 			} else {
 				if debug {
-					s.SetContent(x+offsetX, y+offsetY, level.GetChar(Point{x, y}), nil, tcell.StyleDefault.Foreground(tcell.ColorDarkRed).Background(tcell.ColorBlack))
+					s.SetContent(x+offsetX, y+offsetY, level.GetChar(Point{x, y}), nil, StyleDebug)
 				} else {
-					s.SetContent(x+offsetX, y+offsetY, ' ', nil, style2)
+					s.SetContent(x+offsetX, y+offsetY, ' ', nil, StyleNotVisible)
 				}
 			}
 		}
 	}
 	// s.SetContent(x, y, '@', nil, tcell.Style.Blink(style, true))
-	s.SetContent(playerX+offsetX, playerY+offsetY, '@', nil, style1) //display the player
+	s.SetContent(playerX+offsetX, playerY+offsetY, '@', nil, StyleDefault) //display the player
 	s.ShowCursor(playerX+offsetX, playerY+offsetY)                   //highlight the player
 
 	// s.SetContent(3, 7, tcell.RuneHLine, nil, style)
