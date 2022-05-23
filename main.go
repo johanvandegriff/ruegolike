@@ -10,7 +10,7 @@ import (
 )
 
 const width, height, depth = 48, 16, 32
-const offsetX, offsetY = 1, 2
+const offsetX, offsetY = 1, 2 //the offset from the corner of the screen to display the level
 const debug = false
 
 //Screen - global reference to the text screen
